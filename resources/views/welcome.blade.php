@@ -988,7 +988,7 @@
 
             <div class="mt-16">
                 <div class="grid grid-cols-1 md:grid-cols-1 gap-6 lg:gap-8">
-                    <div class="alert">
+                    <div class="alert" data-section="login">
                         <h5 class="heading pb-3">Đăng nhập <span class="badge">Public</span>
                         </h5>
                         <div class="content pb-3">
@@ -1012,7 +1012,7 @@
                             <i class="far fa-clone"></i>
                         </button>
                     </div>
-                    <div class="alert">
+                    <div class="alert" data-section="logout">
                         <h5 class="heading pb-3">Đăng xuất <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
@@ -1030,7 +1030,7 @@
                             <i class="far fa-clone"></i>
                         </button>
                     </div>
-                    <div class="alert">
+                    <div class="alert" data-section="register">
                         <h5 class="heading pb-3">Đăng ký <span class="badge">Public</span>
                         </h5>
                         <div class="content pb-3">
@@ -1056,7 +1056,7 @@
                             <i class="far fa-clone"></i>
                         </button>
                     </div>
-                    <div class="alert">
+                    <div class="alert" data-section="user-show">
                         <h5 class="heading pb-3">Thông tin người dùng <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
@@ -1075,7 +1075,7 @@
                             <i class="far fa-clone"></i>
                         </button>
                     </div>
-                    <div class="alert">
+                    <div class="alert" data-section="role-index">
                         <h5 class="heading pb-3">Danh sách vai trò <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
@@ -1131,9 +1131,9 @@
         hljs.highlightAll();
     </script>
     <script>
-        function copyToClipboard(className) {
-            var element = document.querySelector('.' + className);
-            var text = element.innerText;
+        function copyUrl(section) {
+            var urlElement = document.querySelector('.alert[data-section="' + section + '"] .url');
+            var text = urlElement.innerText.trim();
 
             var textArea = document.createElement("textarea");
             textArea.value = text;
@@ -1143,6 +1143,8 @@
             document.execCommand('copy');
 
             document.body.removeChild(textArea);
+
+            showToast();
         }
 
         $(document).ready(() => {
@@ -1165,9 +1167,12 @@
 
         });
 
-        document.querySelector('.copy-button').addEventListener('click', function() {
-            copyToClipboard('url');
-            showToast();
+        document.querySelectorAll('.copy-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var section = button.closest('.alert').getAttribute('data-section');
+                copyUrl(section);
+                showToast();
+            });
         });
 
         function showToast() {
