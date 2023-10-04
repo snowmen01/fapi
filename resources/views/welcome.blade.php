@@ -9,6 +9,8 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/hung1001/font-awesome-pro@4cac1a6/css/all.css" rel="stylesheet"
+        type="text/css" />
 
     <style>
         *,
@@ -953,9 +955,21 @@
             top: -9999px;
             left: -9999px;
         }
+
+        .copy-button {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+            background-color: transparent;
+            color: rgb(24, 24, 27);
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
     <link rel="stylesheet" href="{{ asset('highlight/styles/atom-one-dark.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
     <script src="{{ asset('highlight/highlight.min.js') }}"></script>
 </head>
 
@@ -979,7 +993,7 @@
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/login' }}</span>
+                                <span class="url">{{ config('app.url_local') . '/api/v1/login' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -994,13 +1008,16 @@
 }</code>
                             </pre>
                         </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
                     </div>
                     <div class="alert">
                         <h5 class="heading pb-3">Đăng xuất <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/logout' }}</span>
+                                <span class="url">{{ config('app.url_local') . '/api/v1/logout' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -1009,14 +1026,16 @@
                         <div class="pb-3">
                             <span>Bearer Token: </span>
                         </div>
-
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
                     </div>
                     <div class="alert">
                         <h5 class="heading pb-3">Đăng ký <span class="badge">Public</span>
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/register' }}</span>
+                                <span class="url">{{ config('app.url_local') . '/api/v1/register' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -1033,13 +1052,16 @@
 }</code>
                             </pre>
                         </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
                     </div>
                     <div class="alert">
                         <h5 class="heading pb-3">Thông tin người dùng <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL:
+                                <span class="url">
                                     {{ config('app.url_local') . '/api/v1/users/show' }}</span>
                             </div>
                         </div>
@@ -1049,13 +1071,16 @@
                         <div class="pb-3">
                             <span>Bearer Token: </span>
                         </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
                     </div>
                     <div class="alert">
                         <h5 class="heading pb-3">Danh sách vai trò <span class="badge admin">Auth</span>
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/roles' }}</span>
+                                <span class="url">{{ config('app.url_local') . '/api/v1/roles' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -1064,6 +1089,9 @@
                         <div class="pb-3">
                             <span>Bearer Token: </span>
                         </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1088,12 +1116,35 @@
             </div>
         </div>
     </div>
+    <div id="toast"
+        class="fixed top-0 left-0 right-0 flex items-center justify-center rounded-md mx-auto w-60 p-2 bg-white text-black shadow-lg transition-transform transform translate-y-full hidden">
+        <div class="mr-2">
+            <i class="fas fa-check-circle text-green-500"></i>
+        </div>
+        <div>
+            Sao chép thành công
+        </div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         hljs.highlightAll();
     </script>
     <script>
+        function copyToClipboard(className) {
+            var element = document.querySelector('.' + className);
+            var text = element.innerText;
+
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+
+            textArea.select();
+            document.execCommand('copy');
+
+            document.body.removeChild(textArea);
+        }
+
         $(document).ready(() => {
             const buttons = $('.js-button');
             const areacodes = $('.areacode');
@@ -1111,7 +1162,27 @@
                     text.text('Xem');
                 }
             });
+
         });
+
+        document.querySelector('.copy-button').addEventListener('click', function() {
+            copyToClipboard('url');
+            showToast();
+        });
+
+        function showToast() {
+            const toast = $("#toast");
+            toast.removeClass('-translate-y-full hidden');
+
+            setTimeout(function() {
+                hideToast();
+            }, 3000);
+        }
+
+        function hideToast() {
+            const toast = $("#toast");
+            toast.addClass('-translate-y-full hidden');
+        }
     </script>
 </body>
 
