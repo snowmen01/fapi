@@ -1033,6 +1033,37 @@
 }</code>
                             </pre>
                         </div>
+                        <div class="alert">
+                            <h5 class="heading pb-3">Thông tin người dùng <span class="badge admin">Auth</span>
+                            </h5>
+                            <div class="content pb-3">
+                                <div class="url-container">
+                                    <span class="url">URL:
+                                        {{ config('app.url_local') . '/api/v1/users/show' }}</span>
+                                </div>
+                            </div>
+                            <div class="pb-3">
+                                <span>Method: </span><span class="method-badge get">GET</span>
+                            </div>
+                            <div class="pb-3">
+                                <span>Bearer Token: </span>
+                            </div>
+                        </div>
+                        <div class="alert">
+                            <h5 class="heading pb-3">Danh sách vai trò <span class="badge admin">Auth</span>
+                            </h5>
+                            <div class="content pb-3">
+                                <div class="url-container">
+                                    <span class="url">URL: {{ config('app.url_local') . '/api/v1/roles' }}</span>
+                                </div>
+                            </div>
+                            <div class="pb-3">
+                                <span>Method: </span><span class="method-badge get">GET</span>
+                            </div>
+                            <div class="pb-3">
+                                <span>Bearer Token: </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
