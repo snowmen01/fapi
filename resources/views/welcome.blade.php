@@ -860,6 +860,10 @@
             background-color: #2ecc71;
         }
 
+        .method-badge.put {
+            background-color: #922ecc;
+        }
+
         .url-container {
             display: flex;
             align-items: center;
@@ -911,8 +915,6 @@
         @media (max-width: 768px) {
             .alert {
                 width: 100%;
-                padding: 0.5rem;
-                border-radius: 0;
             }
 
             .badge {
@@ -942,8 +944,19 @@
             .pb-3 {
                 padding-bottom: 0.25rem;
             }
+
+        }
+
+        .hidden {
+            display: none;
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+    <link rel="stylesheet" href="{{ asset('highlight/styles/atom-one-dark.min.css') }}">
+    <script src="{{ asset('highlight/highlight.min.js') }}"></script>
 </head>
 
 <body class="antialiased">
@@ -966,22 +979,59 @@
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: <a href="{{ config('app.url_local') . '/login' }}"
-                                        style="font-weight: 500px">{{ config('app.url_local') . '/login' }}</a></span>
-                                <span class="copy-badge">
-                                    Sao chép
-                                </span>
+                                <span class="url">URL: {{ config('app.url_local') . '/login' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
                             <span>Method: </span><span class="method-badge post">POST</span>
                         </div>
-                        <div>
-                            <span>Params: </span>
-                            {
-                            "email" : "admin@gmail.com",
-                            "password" : "12345678"
-                            }
+                        <span>Params: <button style="font-weight:600" class="js-button">Xem </button></span>
+                        <div class="areacode hidden">
+                            <pre class="theme-atom-one-dark shadow-3xl text-sm relative overflow-hidden max-w-full tab-size h-full">
+                                <code class="language-json" style="border-radius: 8px">{
+    "email" : "admin@gmail.com",
+    "password" : "12345678"
+}</code>
+                            </pre>
+                        </div>
+                    </div>
+                    <div class="alert">
+                        <h5 class="heading pb-3">Đăng xuất <span class="badge admin">Auth</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">URL: {{ config('app.url_local') . '/logout' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge get">GET</span>
+                        </div>
+                        <div class="pb-3">
+                            <span>Bearer Token: </span>
+                        </div>
+
+                    </div>
+                    <div class="alert">
+                        <h5 class="heading pb-3">Đăng ký <span class="badge">Public</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">URL: {{ config('app.url_local') . '/register' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge put">PUT</span>
+                        </div>
+                        <span>Params: <button style="font-weight:600" class="js-button">Xem </button></span>
+                        <div class="areacode hidden">
+                            <pre class="theme-atom-one-dark shadow-3xl text-sm relative overflow-hidden max-w-full tab-size h-full">
+                                <code class="language-json" style="border-radius: 8px">{
+    "email" : "admin@gmail.com",
+    "name"  : "Đào Xuân Hùng",
+    "phone" : "0987654321",
+    "password" : "12345678"
+}</code>
+                            </pre>
                         </div>
                     </div>
                 </div>
@@ -1003,11 +1053,36 @@
                 </div>
 
                 <div class="ml-4 text-center text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:ml-0">
-                    Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})
+                    FstudioAPI
                 </div>
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    <script>
+        $(document).ready(() => {
+            const buttons = $('.js-button');
+            const areacodes = $('.areacode');
+
+            buttons.click((event) => {
+                const target = $(event.target);
+                const areacode = target.closest('.alert').find('.areacode');
+                const text = target.find('span.text');
+
+                if (areacode.hasClass('hidden')) {
+                    areacode.removeClass('hidden');
+                    text.text('Ẩn');
+                } else {
+                    areacode.addClass('hidden');
+                    text.text('Xem');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
