@@ -979,7 +979,7 @@
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/login' }}</span>
+                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/login' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -1000,7 +1000,7 @@
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/logout' }}</span>
+                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/logout' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
@@ -1016,7 +1016,7 @@
                         </h5>
                         <div class="content pb-3">
                             <div class="url-container">
-                                <span class="url">URL: {{ config('app.url_local') . '/register' }}</span>
+                                <span class="url">URL: {{ config('app.url_local') . '/api/v1/register' }}</span>
                             </div>
                         </div>
                         <div class="pb-3">
