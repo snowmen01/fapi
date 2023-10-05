@@ -9,7 +9,7 @@ require __DIR__ . "/product/api.php";
 
 Route::get('/docs', function () {
     return view('welcome');
-});
+})->name('docs');
 
 #--Auth
 Route::controller(AuthController::class)
