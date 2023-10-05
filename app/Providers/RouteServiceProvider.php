@@ -22,9 +22,10 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('api')
                 ->prefix('api/')
                 ->group(base_path('routes/api.php'));
+
+            if (request()->segment(1) == null) {
+                return Route::redirect('/', '/docs/api');
+            };
         });
-        if (request()->segment(1) === '/') {
-            redirect('/docs/api');
-        }
     }
 }
