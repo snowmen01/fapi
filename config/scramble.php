@@ -56,7 +56,10 @@ return [
      * ],
      * ```
      */
-    'servers' => null,
+    'servers' => [
+        'Live' => 'api',
+        'Prod' => 'https://fstudiovn.id.vn/api',
+    ],
 
     'middleware' => [
         'web',
