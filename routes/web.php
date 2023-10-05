@@ -8,5 +8,5 @@ require __DIR__ . "/product/api.php";
 
 #--Auth
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/docs/api');
 });
