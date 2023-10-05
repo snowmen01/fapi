@@ -19,6 +19,8 @@ use App\Repositories\Repository\{
 use Dedoc\Scramble\Scramble;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,6 +54,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Scramble::routes(function (Route $route) {
             return Str::startsWith($route->uri, 'api/');
+        });
+        Scramble::extendOpenApi(function (OpenApi $openApi) {
+            $openApi->secure(
+                SecurityScheme::http('bearer', 'JWT')
+            );
         });
     }
 }
