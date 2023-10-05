@@ -16,6 +16,10 @@ use App\Repositories\Repository\{
     UserRepository,
 };
 
+use Dedoc\Scramble\Scramble;
+use Illuminate\Routing\Route;
+use Illuminate\Support\Str;
+
 class AppServiceProvider extends ServiceProvider
 {
     protected static $repositories = [
@@ -36,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
             UserRepository::class
         ],
     ];
-    
+
     public function register(): void
     {
         foreach (static::$repositories as $repository) {
@@ -46,5 +50,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Scramble::routes(function (Route $route) {
+            return Str::startsWith($route->uri, 'api/');
+        });
     }
 }

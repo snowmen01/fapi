@@ -23,5 +23,8 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api/')
                 ->group(base_path('routes/api.php'));
         });
+        if (request()->segment(1) === '/') {
+            redirect('/docs/api');
+        }
     }
 }
