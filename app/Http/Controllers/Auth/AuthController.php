@@ -38,7 +38,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/auth/login",
+     *     path="/auth/login",
      *     summary="Xác thực người dùng và tạo mã thông báo JWT",
      *     @OA\Parameter(
      *         name="email",

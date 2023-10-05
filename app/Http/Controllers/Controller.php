@@ -8,20 +8,25 @@ use Illuminate\Routing\Controller as BaseController;
 
 /**
  * @OA\Info(
- *    title="Tài liệu API",
- *    version="1.0.0",
+ *     version="1.0.0",
+ *     title="Swagger Fstudio",
+ *     @OA\Contact(
+ *         email="apiteam@swagger.io"
+ *     ),
  * )
- * @OA\SecurityScheme(
- *      securityScheme="bearerAuth",
- *      in="header",
- *      name="bearerAuth",
- *      type="http",
- *      scheme="bearer",
- *      bearerFormat="JWT",
- * ),
-
+ *  @OA\Server(
+ *      url="http://127.0.0.1:8000/api/",
+ *      description="Development Environment"
+ *  )
+ *
+ *  @OA\Server(
+ *      url="https://fstudiovn.id.vn/api/",
+ *      description="Staging  Environment"
+ * )
  */
+
 class Controller extends BaseController
 {
+
     use AuthorizesRequests, ValidatesRequests;
 }
