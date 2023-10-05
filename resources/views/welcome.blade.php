@@ -862,6 +862,10 @@
             background-color: #2ecc71;
         }
 
+        .method-badge.delete {
+            background-color: #e64040;
+        }
+
         .method-badge.put {
             background-color: #922ecc;
         }
@@ -1075,6 +1079,98 @@
                             <i class="far fa-clone"></i>
                         </button>
                     </div>
+                    <div class="alert" data-section="user-show">
+                        <h5 class="heading pb-3">Danh sách người dùng <span class="badge admin">Auth</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">
+                                    {{ config('app.url_local') . '/api/v1/users' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge get">GET</span>
+                        </div>
+                        <div class="pb-3">
+                            <span>Bearer Token: </span>
+                        </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
+                    </div>
+                    <div class="alert" data-section="user-show">
+                        <h5 class="heading pb-3">Thêm mới người dùng <span class="badge admin">Auth</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">
+                                    {{ config('app.url_local') . '/api/v1/users' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge post">POST</span>
+                        </div>
+                        <div class="pb-3">
+                            <span>Bearer Token: </span>
+                        </div>
+                        <span>Params: <button style="font-weight:600" class="js-button">Xem </button></span>
+                        <div class="areacode hidden">
+                            <pre class="theme-atom-one-dark shadow-3xl text-sm relative overflow-hidden max-w-full tab-size h-full">
+                                <code class="language-json" style="border-radius: 8px">{
+    "Đang cập nhật"
+}</code>
+                            </pre>
+                        </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
+                    </div>
+                    <div class="alert" data-section="user-show">
+                        <h5 class="heading pb-3">Cập nhật người dùng <span class="badge admin">Auth</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">
+                                    {{ config('app.url_local') . '/api/v1/users/{roleId}' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge put">PUT</span>
+                        </div>
+                        <div class="pb-3">
+                            <span>Bearer Token: </span>
+                        </div>
+                        <span>Params: <button style="font-weight:600" class="js-button">Xem </button></span>
+                        <div class="areacode hidden">
+                            <pre class="theme-atom-one-dark shadow-3xl text-sm relative overflow-hidden max-w-full tab-size h-full">
+                                <code class="language-json" style="border-radius: 8px">{
+    "Đang cập nhật"
+}</code>
+                            </pre>
+                        </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
+                    </div>
+                    <div class="alert" data-section="user-show">
+                        <h5 class="heading pb-3">Xoá người dùng <span class="badge admin">Auth</span>
+                        </h5>
+                        <div class="content pb-3">
+                            <div class="url-container">
+                                <span class="url">
+                                    {{ config('app.url_local') . '/api/v1/users/{roleId}' }}</span>
+                            </div>
+                        </div>
+                        <div class="pb-3">
+                            <span>Method: </span><span class="method-badge delete">DELETE</span>
+                        </div>
+                        <div class="pb-3">
+                            <span>Bearer Token: </span>
+                        </div>
+                        <button class="copy-button" onclick="showToast()">
+                            <i class="far fa-clone"></i>
+                        </button>
+                    </div>
                     <div class="alert" data-section="role-index">
                         <h5 class="heading pb-3">Danh sách vai trò <span class="badge admin">Auth</span>
                         </h5>
@@ -1158,10 +1254,8 @@
 
                 if (areacode.hasClass('hidden')) {
                     areacode.removeClass('hidden');
-                    text.text('Ẩn');
                 } else {
                     areacode.addClass('hidden');
-                    text.text('Xem');
                 }
             });
 
