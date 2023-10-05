@@ -36,6 +36,28 @@ class AuthController extends Controller
         return $user->access_token;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Xác thực người dùng và tạo mã thông báo JWT",
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="Email của người dùng",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="password",
+     *         in="query",
+     *         description="Mật khẩu của người dùng",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(response="200", description="Đăng nhập thành công"),
+     *     @OA\Response(response="401", description="Thông tin đăng nhập không hợp lệ")
+     * )
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $data = $request->only('email', 'password');
@@ -68,7 +90,7 @@ class AuthController extends Controller
         return response()->json([
             'user' => auth()->user(),
             'access_token' => $userWithTokens,
-        ]);
+        ], 200);
     }
 
     public function refresh(Request $request)
@@ -95,6 +117,17 @@ class AuthController extends Controller
         ], 401);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="Đăng xuất người dùng",
+     *     @OA\Response(response="200", description="Đăng xuất thành công"),
+     *     @OA\Response(response="401", description="Token đã hết hạn hoặc không hợp lệ"),
+     *     security={
+     *         {"bearer": {}}
+     *     }
+     * )
+     */
     public function logout()
     {
         if (auth()->check()) {
