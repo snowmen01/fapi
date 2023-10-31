@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Interface\UserRepositoryInterface;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -35,9 +36,9 @@ class UserController extends Controller
     public function destroy()
     {
     }
-    public function show()
+    public function show(Request $request)
     {
-        $user = $this->userRepository->show();
+        $user = $this->userRepository->show($request->email);
 
         return response()->json([
             'user'      => $user,

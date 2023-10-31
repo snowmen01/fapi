@@ -5,12 +5,14 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Interface\{
     AuthRepositoryInterface,
+    CategoryRepositoryInterface,
     PermissionRepositoryInterface,
     RoleRepositoryInterface,
     UserRepositoryInterface,
 };
 use App\Repositories\Repository\{
     AuthRepository,
+    CategoryRepository,
     PermissionRepository,
     RoleRepository,
     UserRepository,
@@ -26,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
         'auth' => [
             AuthRepositoryInterface::class,
             AuthRepository::class
+        ],
+        'category' => [
+            CategoryRepositoryInterface::class,
+            CategoryRepository::class
         ],
         'permission' => [
             PermissionRepositoryInterface::class,

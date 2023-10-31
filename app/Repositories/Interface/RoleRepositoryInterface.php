@@ -13,4 +13,10 @@ interface RoleRepositoryInterface extends BaseRepositoryInterface
     public function getRoles();
 
     public function getRoleFilters($data);
+
+    public function createRole($data);
+
+    public function updateRole($data, $id);
+
+    public function deleteRole($id);
 }

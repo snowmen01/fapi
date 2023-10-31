@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
+use App\Http\Requests\Admin\Role\CreateRequest;
 use App\Repositories\Interface\PermissionRepositoryInterface;
 use App\Repositories\Interface\RoleRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RoleController extends Controller
 {
@@ -28,40 +30,86 @@ class RoleController extends Controller
 
     public function index(Request $request)
     {
-        $roles = $this->roleRepository->getRoleFilters($request->all());
-        $roles = $roles->get();
-        $roleKeys = config('constant.roles');
-        $permissions = $this->permissionRepository->getPermissions()->groupBy('module_name');
+        try {
+            $roles = $this->roleRepository->getRoleFilters($request->all());
+            $roleKeys = config('constant.roles');
+            $permissions = $this->permissionRepository->getPermissions()->groupBy('module_name');
 
-        return response()->json([
-            'data'        => $roles,
-            'roleKey'     => $roleKeys,
-            'permissions' => $permissions,
-        ]);
+            return response()->json([
+                'data'        => $roles,
+                'roleKey'     => $roleKeys,
+                'permissions' => $permissions,
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
     }
 
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
+        try {
+            $data = $request->all();
+            DB::transaction(function () use ($data) {
+                $this->roleRepository->createRole($data);
+            });
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Tạo mới thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
     }
 
     public function show(Request $request, $id)
     {
-        $role = $this->roleRepository->getRole($id);
-        $roleKeys = config('constant.roles');
+        $role        = $this->roleRepository->getRole($id);
+        $roleKeys    = config('constant.roles');
+        $permission  = $role->permissions->pluck('id')->toArray();
         $permissions = $this->permissionRepository->getPermissions()->groupBy('module_name');
 
         return response()->json([
             'role'        => $role,
+            'permission'  => $permission,
             'roleKey'     => $roleKeys,
             'permissions' => $permissions,
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
+        try {
+            $data = $request->all();
+            DB::transaction(function () use ($data, $id) {
+                $this->roleRepository->updateRole($data, $id);
+            });
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
     }
 
-    public function destroy()
+    public function destroy($id)
     {
+        try {
+            DB::transaction(function () use ($id) {
+                $this->roleRepository->deleteRole($id);
+            });
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Xoá thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
     }
 }

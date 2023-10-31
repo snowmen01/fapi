@@ -6,7 +6,7 @@ use App\Repositories\BaseRepositoryInterface;
 
 interface UserRepositoryInterface extends BaseRepositoryInterface
 {
-    public function show();
+    public function show($email);
 
     public function getUser($id);
 

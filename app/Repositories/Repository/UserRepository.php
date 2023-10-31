@@ -18,7 +18,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $this->user = $user;
     }
 
-    public function show()
+    public function show($email)
     {
         $user = $this->user->find(auth()->id());
 

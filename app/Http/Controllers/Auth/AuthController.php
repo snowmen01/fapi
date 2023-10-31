@@ -20,7 +20,7 @@ class AuthController extends Controller
         AuthRepositoryInterface $authRepository,
         UserRepositoryInterface $userRepository,
     ) {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh']]);
 
         $this->authRepository = $authRepository;
         $this->userRepository = $userRepository;
@@ -44,20 +44,20 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'error' => __('common.auth.failed')
-            ], 401);
+                'message' => __('common.auth.failed')
+            ]);
         }
 
         if ($user->active != config('constant.active')) {
             return response()->json([
-                'error' => __('common.auth.inactive')
-            ], 403);
+                'message' => __('common.auth.inactive')
+            ]);
         }
 
         if ($user->deleted_at != null) {
             return response()->json([
-                'error' => __('common.auth.failed')
-            ], 403);
+                'message' => __('common.auth.failed')
+            ]);
         }
 
         $refreshToken = Str::random(64);
@@ -66,8 +66,10 @@ class AuthController extends Controller
         $userWithTokens = $this->loginUser($user, $refreshToken, $refreshTokenExpiry);
 
         return response()->json([
-            'user' => auth()->user(),
+            'message' =>  'Đăng nhập thành công',
             'access_token' => $userWithTokens,
+            'refresh_token' => $user->refresh_token,
+            'user' => $user,
         ], 200);
     }
 
@@ -84,9 +86,8 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
         $responseData = $this->userRepository->updateRefreshToken($user->id, $token);
         return response()->json([
-            'status' => 200,
             'message' =>  'Đăng nhập thành công',
-            'access_token' => $token,
+            'data' => $token,
             'refresh_token' => $responseData->refresh_token,
         ], 200);
         return response()->json([
