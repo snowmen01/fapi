@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Brand extends Model
 {
     use HasFactory;
+
+    const TABLE = 'brands';
+    protected $table = self::TABLE;
+    protected $fillable = ['name', 'description', 'slug'];
+    public $timestamps = true;
+
+    public function image()
+    {
+        return $this->morphOne(Image::class, 'imageable');
+    }
 }

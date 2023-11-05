@@ -29,10 +29,6 @@ class AppServiceProvider extends ServiceProvider
             AuthRepositoryInterface::class,
             AuthRepository::class
         ],
-        'category' => [
-            CategoryRepositoryInterface::class,
-            CategoryRepository::class
-        ],
         'permission' => [
             PermissionRepositoryInterface::class,
             PermissionRepository::class

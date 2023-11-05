@@ -87,7 +87,8 @@ class AuthController extends Controller
         $responseData = $this->userRepository->updateRefreshToken($user->id, $token);
         return response()->json([
             'message' =>  'Đăng nhập thành công',
-            'data' => $token,
+            'access_token' => $token,
+            'user' => $user,
             'refresh_token' => $responseData->refresh_token,
         ], 200);
         return response()->json([

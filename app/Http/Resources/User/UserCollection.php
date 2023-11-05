@@ -1,14 +1,18 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class UserCollection extends ResourceCollection
 {
-    public function toArray(Request $request): array
+    public function toArray(Request $request)
     {
+        if (!empty($this->items)) {
+            return [];
+        }
+
         $array = [
             'id'          => $this->id,
             'name'        => $this->name,
