@@ -19,7 +19,7 @@ class BannerController extends Controller
     ) {
         $this->middleware("permission:" . config('permissions')['banners']['banner.list'] .   "|" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['index', 'show']]);
         $this->middleware("permission:" . config('permissions')['banners']['banner.create'] . "|" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['store']]);
-        $this->middleware("permission:" . config('permissions')['banners']['banner.edit'] .   "|" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['update' . 'active']]);
+        $this->middleware("permission:" . config('permissions')['banners']['banner.edit'] .   "|" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['update', 'active']]);
         $this->middleware("permission:" . config('permissions')['banners']['banner.delete'] . "|" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['destroy']]);
 
         $this->bannerService = $bannerService;

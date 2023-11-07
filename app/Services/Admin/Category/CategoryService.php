@@ -61,6 +61,13 @@ class CategoryService
         return $category;
     }
 
+    public function getCategories()
+    {
+        $categories = $this->category->where('active', config('constant.active'))->orderBy('name', 'asc')->get();
+
+        return $categories;
+    }
+
     public function store($data)
     {
         $category = $this->category->create($data);

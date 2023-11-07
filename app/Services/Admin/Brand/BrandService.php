@@ -59,6 +59,13 @@ class BrandService
         return $brand;
     }
 
+    public function getBrands()
+    {
+        $brands = $this->brand->orderBy('name', 'asc')->get();
+
+        return $brands;
+    }
+
     public function store($data)
     {
         $brand = $this->brand->create($data);
@@ -71,8 +78,8 @@ class BrandService
     public function update($id, $data)
     {
         $brand = $this->getBrandById($id);
-        $brand->image()->delete();
-        if(isset($data['images'][0]['url'])){
+        if (isset($data['images'][0]['url'])) {
+            $brand->image()->delete();
             $dataImage = ['path' => $data['images'][0]['url']];
             $brand->image()->create($dataImage);
         }

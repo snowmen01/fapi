@@ -76,8 +76,8 @@ class BannerService
     public function update($id, $data)
     {
         $banner = $this->getBannerById($id);
-        $banner->image()->delete();
         if (isset($data['images'][0]['url'])) {
+            $banner->image()->delete();
             $dataImage = ['path' => $data['images'][0]['url']];
             $banner->image()->create($dataImage);
         }

@@ -5,18 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Brand extends Model
+class ProductGallery extends Model
 {
     use HasFactory;
 
-    const TABLE = 'brands';
+    const TABLE = 'product_galleries';
     protected $table = self::TABLE;
-    protected $fillable = ['name', 'description', 'slug'];
+    protected $fillable = ['product_id'];
     public $timestamps = true;
 
-    public function products()
+    public function product()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(Product::class);
     }
 
     public function image()
