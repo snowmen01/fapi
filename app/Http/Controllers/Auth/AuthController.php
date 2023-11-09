@@ -4,12 +4,20 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Mail\Web\MailResetPassword;
+use App\Models\PasswordReset;
+use App\Models\User;
 use App\Repositories\Interface\AuthRepositoryInterface;
 use App\Repositories\Interface\UserRepositoryInterface;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Shared\OLE\PPS;
 
 class AuthController extends Controller
 {
@@ -20,7 +28,7 @@ class AuthController extends Controller
         AuthRepositoryInterface $authRepository,
         UserRepositoryInterface $userRepository,
     ) {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh', 'getReset', 'postReset']]);
 
         $this->authRepository = $authRepository;
         $this->userRepository = $userRepository;
@@ -34,6 +42,78 @@ class AuthController extends Controller
         $user->update();
 
         return $user->access_token;
+    }
+
+    public function getReset(Request $request)
+    {
+        $data = $request->all();
+
+        if ($data['email']) {
+            $user = User::where('email', $data['email'])->first();
+        }
+
+        if ($data['phone']) {
+            $user = User::where('phone', $data['phone'])->first();
+        }
+
+        if ($user) {
+            $otpCode = rand(100000, 999999);
+
+            $passwordReset = PasswordReset::updateOrCreate(
+                ['email' => $user->email],
+                [
+                    'token' => $otpCode,
+                    'created_at' => now(),
+                ]
+            );
+
+            if ($passwordReset) {
+                Mail::to($user)->queue(new MailResetPassword($user, $otpCode));
+                return response()->json([
+                    'message' => "Gửi email thành công, vui lòng check email để lấy mã đặt lại mật khẩu!"
+                ]);
+            }
+        } else {
+            return response()->json([
+                'message' => "Không tìm thấy tài khoản này, vui lòng cung cấp email hoặc số điện thoại chính xác!"
+            ], 422);
+        }
+    }
+
+    public function postReset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'otp' => ['required', 'numeric'],
+            'password' => ['required', 'string', 'min:8', 'max:20'],
+            'password_confirm' => ['required', 'same:password'],
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }      
+
+        $data = $request->all();
+
+        $passwordReset = PasswordReset::where('token', $data['otp'])->first();
+        if (Carbon::parse($passwordReset->created_at)->addMinutes(1)->isPast()) {
+            return response()->json([
+                'message' => "OTP Đã hết hạn, vui lòng thử lại."
+            ], 422);
+        }
+
+        $user = User::where('email', $passwordReset->email)->first();
+        $user->update([
+            'password' => $data['password'],
+        ]);
+        if ($user) {
+            $passwordReset->delete();
+            return response()->json([
+                'message' => "Cập nhật mật khẩu thành công!"
+            ], 422);
+        }
     }
 
     public function login(LoginRequest $request): JsonResponse

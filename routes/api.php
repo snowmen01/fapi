@@ -20,6 +20,8 @@ Route::controller(AuthController::class)
         Route::post('/refresh', 'refresh')->name('refresh');
         Route::post('/logout', 'logout')->name('logout');
         Route::put('/register', 'register')->name('register');
+        Route::get('/reset-password', 'getReset')->name('getReset');
+        Route::post('/reset-password', 'postReset')->name('postReset');
     });
 
 #--NoAuth
