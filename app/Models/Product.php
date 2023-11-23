@@ -37,9 +37,14 @@ class Product extends Model
         return $this->morphOne(Image::class, 'imageable');
     }
 
+    public function skus()
+    {
+        return $this->hasMany(Sku::class);
+    }
+
     public function galleries()
     {
-        return $this->hasMany(Image::class, 'imageable');
+        return $this->hasMany(ProductGallery::class);
     }
 
     public function category()

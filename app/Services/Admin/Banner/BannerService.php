@@ -35,6 +35,10 @@ class BannerService
             $banners = $banners->get();
         }
 
+        if (isset($params['active'])) {
+            $banners = $banners->where('active', $params['active']);
+        }
+
         $banners->map(function ($banner) {
             $banner->name        = limitTo($banner->name, 10);
             $banner->description = limitTo($banner->description, 10);

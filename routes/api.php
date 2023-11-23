@@ -10,6 +10,7 @@ require __DIR__ . "/category/api.php";
 require __DIR__ . "/product/api.php";
 require __DIR__ . "/role/api.php";
 require __DIR__ . "/user/api.php";
+require __DIR__ . "/property/api.php";
 
 #--Auth
 Route::controller(AuthController::class)

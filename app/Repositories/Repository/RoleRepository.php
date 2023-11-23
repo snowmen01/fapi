@@ -103,26 +103,4 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
             });
         }
     }
-
-    // public function getListRoles($data)
-    // {
-    //     $data['order'] = $data['order'][0];
-    //     $model = $this->getRoleFilters($data);
-    //     $recordsTotal = $model->count();
-
-    //     $roles = $model->offset($data['start'])
-    //         ->limit($data['length'])
-    //         ->get();
-
-    //     $roles->map(function ($role) {
-    //         $role->name = limitCharacter($role->name, 40);
-
-    //         $role->action = view('admin.roles.elements.actions', ['roleId' => $role->id])->render();
-    //     });
-    //     return [
-    //         'result' => $roles,
-    //         'recordsTotal' => $recordsTotal,
-    //         'recordsFiltered' => $recordsTotal
-    //     ];
-    // }
 }

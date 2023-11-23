@@ -5,22 +5,16 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Interface\{
     AuthRepositoryInterface,
-    CategoryRepositoryInterface,
     PermissionRepositoryInterface,
     RoleRepositoryInterface,
     UserRepositoryInterface,
 };
 use App\Repositories\Repository\{
     AuthRepository,
-    CategoryRepository,
     PermissionRepository,
     RoleRepository,
     UserRepository,
 };
-
-use Dedoc\Scramble\Scramble;
-use Illuminate\Routing\Route;
-use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,8 +46,5 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Scramble::routes(function (Route $route) {
-            return Str::startsWith($route->uri, 'api/');
-        });
     }
 }

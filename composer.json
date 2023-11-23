@@ -6,8 +6,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "dedoc/scramble": "^0.8.4",
-        "doctrine/dbal": "^3.7",
         "guzzlehttp/guzzle": "^7.2",
         "illuminate/support": "*",
         "kjmtrue/vietnam-zone": "^1.0",

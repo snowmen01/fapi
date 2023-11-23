@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ResetPasswordRequest extends FormRequest
+class GetPasswordRequest extends FormRequest
 {
     public function authorize()
     {
@@ -16,9 +16,14 @@ class ResetPasswordRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'otp' => ['required', 'numeric'],
-            'password' => ['required', 'string', 'min:8', 'max:20'],
-            'password_confirm' => ['required', 'same:password'],
+            'email' => ['sometimes', 'required', 'string', 'email', 'max:191', 'regex:/^([a-z0-9_-]+)(\.[a-z0-9_-]+)*@([a-z0-9_-]+\.)+[a-z]{2,6}$/ix'],
+            'phone' => [
+                'sometimes',
+                'required',
+                'min:10',
+                'max:15',
+                'regex:/^[0-9-]+$/',
+            ],
         ];
 
         return $rules;
