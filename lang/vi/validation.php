@@ -153,6 +153,15 @@ return [
         'otp'                   => 'OTP',
         'password'              => 'mật khẩu',
         'password_confirm'      => 'xác nhận mật khẩu',
+        'name'                  => 'tên',
+        'brand_id'              => 'thương hiệu',
+        'category_id'           => 'danh mục',
+        'quantity'              => 'số lượng',
+        'sold_quantity'         => 'số lượng đã bán',
+        'active'                => 'trạng thái kích hoạt',
+        'trending'              => 'nổi bật',
+        'property_id'           => 'thuộc tính',
+        'image'                 => 'hình ảnh',
     ],
 
 ];

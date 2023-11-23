@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Category\CreateRequest;
+use App\Http\Requests\Admin\Category\UpdateRequest;
 use App\Http\Resources\Category\CategoryCollection;
 use App\Services\Admin\Category\CategoryService;
 use Illuminate\Http\Request;
@@ -47,7 +49,7 @@ class CategoryController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
         try {
             $data = $request->all();
@@ -74,13 +76,13 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
         try {
             $data = $request->all();
             $data['active'] = $data['active'] == true ? 1 : 0;
             $data['slug']   = Str::slug($data['name'], '-');
-            
+
             $this->categoryService->update($id, $data);
             return response()->json([
                 'result'        => 0,

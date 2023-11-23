@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Brand\CreateRequest;
+use App\Http\Requests\Admin\Brand\UpdateRequest;
 use App\Http\Resources\Brand\BrandCollection;
 use App\Services\Admin\Brand\BrandService;
 use Illuminate\Http\Request;
@@ -46,7 +48,7 @@ class BrandController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
         try {
             $data = $request->all();
@@ -71,7 +73,7 @@ class BrandController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
         try {
             $data = $request->all();

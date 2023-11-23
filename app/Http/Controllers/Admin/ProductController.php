@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Product\CreateRequest;
+use App\Http\Requests\Admin\Product\UpdateRequest;
 use App\Http\Resources\Product\ProductCollection;
 use App\Models\Product;
 use App\Models\Property;
@@ -190,7 +192,7 @@ class ProductController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
         try {
             $data = $request->all();
@@ -221,7 +223,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
         try {
             $data = $request->all();
