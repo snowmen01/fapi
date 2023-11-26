@@ -32,6 +32,7 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+        'Invoice' => LaravelDaily\Invoices\Facades\Invoice::class,
     ])->toArray(),
 
 ];

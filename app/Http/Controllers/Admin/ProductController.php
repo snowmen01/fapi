@@ -87,12 +87,12 @@ class ProductController extends Controller
     {
         try {
             $product = $this->productService->getProductBySlug($slug);
-            // $skuIds = PropertyOptionSku::whereIn('property_option_id', [7, 11])
-            //     ->groupBy('sku_id')
-            //     ->havingRaw('COUNT(DISTINCT property_option_id) = ?', [2])
-            //     ->pluck('sku_id');
+            $skuIds = PropertyOptionSku::whereIn('property_option_id', array_values($request->all()))
+                ->groupBy('sku_id')
+                ->havingRaw('COUNT(DISTINCT property_option_id) = ?', [count(array_values($request->all()))])
+                ->pluck('sku_id');
 
-            // $skus = Sku::whereIn('id', $skuIds)->get();
+            $skus = Sku::whereIn('id', $skuIds)->where('product_id', $product->id)->get();
 
             $options = [];
             foreach ($product->skus as $sku) {
@@ -122,7 +122,8 @@ class ProductController extends Controller
 
             return response()->json([
                 'data'    => $product,
-                'options' => $optionFormatted
+                'options' => $optionFormatted,
+                'newData' => $skus
             ]);
         } catch (\Throwable $e) {
             Log::info($e->getMessage());

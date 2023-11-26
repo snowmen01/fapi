@@ -19,9 +19,9 @@ class CreateRequest extends FormRequest
             'name'          => 'required|max:191',
             'category_id'   => 'required|numeric',
             'brand_id'      => 'required|numeric',
-            'price'         => 'sometimes|required|numeric|min:1|max:10000000000',
-            'quantity'      => 'sometimes|required|numeric|min:0|max:1000000',
-            'sold_quantity' => 'sometimes|required|numeric|min:0|max:1000000',
+            'price'         => 'nullable|numeric|min:0|max:10000000000',
+            'quantity'      => 'nullable|numeric|min:0|max:1000000',
+            'sold_quantity' => 'nullable|numeric|min:0|max:1000000',
             'active'        => 'required',
             'trending'      => 'required',
         ];

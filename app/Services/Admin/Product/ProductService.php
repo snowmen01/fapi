@@ -65,7 +65,9 @@ class ProductService
 
     public function show($id)
     {
-        $product = $this->product->with('image', 'galleries', 'galleries.image')->find($id);
+        $product = $this->product
+            ->with('image', 'galleries', 'galleries.image')
+            ->find($id);
 
         return $product;
     }
@@ -130,7 +132,6 @@ class ProductService
 
     public function gallery($id, $data)
     {
-        Log::info($data['galleries']);
         $product = $this->getProductById($id);
         if (isset($data['galleries'])) {
             foreach ($product->galleries as $gallery) {
