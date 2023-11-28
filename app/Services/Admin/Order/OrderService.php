@@ -16,6 +16,7 @@ use App\Models\Sku;
 use App\Services\Admin\Customer\CustomerService as CustomerCustomerService;
 use App\Services\Admin\Product\ProductService;
 use App\Services\Admin\Property\PropertyService;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
@@ -44,7 +45,11 @@ class OrderService
         $orders = $this->order->with('childrenOrders')->whereNull('order_id')->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
 
         if (isset($params['keywords'])) {
-            $orders = $orders->where('phone', 'LIKE', '%' . $params['keywords'] . '%')->Orwhere('name', 'LIKE', '%' . $params['keywords'] . '%');
+            $orders = $orders->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
+                ->where('customers.phone', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('code', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('customers.name', 'LIKE', '%' . $params['keywords'] . '%')
+                ->select('orders.*');
         }
 
         if (isset($params['per_page'])) {
@@ -64,6 +69,14 @@ class OrderService
         }
 
         $orders->map(function ($order) {
+            $order->customer_id = $order->customer->name;
+            $time   = date('h:i:s', strtotime($order->created_at));
+            $ampm   = date('A', strtotime($order->created_at));
+            $period = $ampm == 'AM' ? 'Sáng' : 'Chiều';
+            $date   = $period . ', Ngày ' . date('d-m-Y', strtotime($order->created_at));
+            $order->createdAt = $time . ' ' . $date;
+            $order->filename  = $order->code . '_' . Str::slug($order->customer_id) . '.pdf';
+            $order->status    = config("constant.status_order_common.$order->status");
         });
 
         return $orders;

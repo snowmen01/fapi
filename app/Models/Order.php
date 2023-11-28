@@ -30,6 +30,11 @@ class Order extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
     public function modelFilter(): ?string
     {
         return $this->provideFilter(OrderFilter::class);
