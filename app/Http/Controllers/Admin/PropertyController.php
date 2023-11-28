@@ -107,4 +107,21 @@ class PropertyController extends Controller
             return $this->errorBack('Đã xảy ra lỗi');
         }
     }
+
+    public function active(Request $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $data['active'] = $data['active'] == true ? 1 : 0;
+            $this->propertyService->active($id, $data);
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
+    }
 }

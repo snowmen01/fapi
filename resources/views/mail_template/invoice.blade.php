@@ -38,13 +38,13 @@
                     <tr style="background-color: {{ $index % 2 != 0 ? '#f2f2f2' : '#ffffff' }};">
                         <td style="border: 1px solid #ddd; padding: 8px;">{{ $index + 1 }}</td>
                         <td style="border: 1px solid #ddd; padding: 8px;"><img
-                                src="{{ asset('storage/' . $productService->getProductById($item->product_id)->image) }}"
+                                src="{{ $productService->getProductById($item->product_id)->image->path }}"
                                 alt="{{ $productService->getProductById($item->product_id)->name }}" width="80"
                                 height="80"></td>
                         <td style="border: 1px solid #ddd; padding: 8px;">
                             <a style="text-decoration: none; font-weight: 500; color: #f82929"
-                                href="{{ route('web.products.productDetail', $productService->getProductById($item->product_id)->slug) }}">
-                                {{ $productService->getProductById($item->product_id)->name . ' - ' . $propertyService->getPropertyById($item->color_id)->name . ' - ' . $propertyService->getPropertyById($item->size_id)->name }}
+                                href="{{ 'localhost:3000/product/' . $productService->getProductById($item->product_id)->slug }}">
+                                {{ $productService->getProductById($item->product_id)->name }}
                             </a>
                         </td>
                         <td style="border: 1px solid #ddd; padding: 8px;">

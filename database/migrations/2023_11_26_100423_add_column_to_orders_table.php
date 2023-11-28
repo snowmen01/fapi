@@ -11,11 +11,12 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->string('code')->nullable();
             $table->unsignedBigInteger('customer_id')->nullable();
-            $table->float('total')->nullable()->default(null);
+            $table->double('total')->nullable()->default(null);
             $table->unsignedBigInteger('order_id')->nullable();
+            $table->unsignedBigInteger('product_id')->nullable();
             $table->unsignedBigInteger('sku_id')->nullable();
             $table->integer('quantity')->nullable()->default(0);
-            $table->float('price')->nullable()->default(null);
+            $table->double('price')->nullable()->default(null);
             $table->integer('status')->nullable()->default(0);
             $table->text('address')->nullable();
             $table->text('description')->nullable();

@@ -7,7 +7,7 @@ return [
     ],
 
     'serial_number' => [
-        'series'   => 'VIPFASHION',
+        'series'   => 'FSTUDIOVYFPT',
         'sequence' => 1,
         'sequence_padding' => 5,
         'delimiter'        => '.',

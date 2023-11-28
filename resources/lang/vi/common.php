@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'app_name'  => "Fstudio",
     'auth' => [
         'inactive'        => 'Tài khoản của bạn đã bị tắt kích hoạt. Liên hệ admin để được hỗ trợ',
         'success'         => 'Đăng nhập thành công',

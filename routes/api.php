@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\Client\AuthController as ClientAuthController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__ . "/banner/api.php";
 require __DIR__ . "/brand/api.php";
 require __DIR__ . "/category/api.php";
+require __DIR__ . "/customer/api.php";
+require __DIR__ . "/order/api.php";
 require __DIR__ . "/product/api.php";
 require __DIR__ . "/role/api.php";
 require __DIR__ . "/user/api.php";
@@ -20,7 +24,19 @@ Route::controller(AuthController::class)
         Route::post('/login', 'login')->name('login');
         Route::post('/refresh', 'refresh')->name('refresh');
         Route::post('/logout', 'logout')->name('logout');
-        Route::put('/register', 'register')->name('register');
+        Route::post('/register', 'register')->name('register');
+        Route::get('/reset-password', 'getReset')->name('getReset');
+        Route::post('/reset-password', 'postReset')->name('postReset');
+    });
+
+#--Auth-StoreFront
+Route::controller(ClientAuthController::class)
+    ->name('customers.')
+    ->group(function () {
+        Route::post('/login', 'login')->name('login');
+        Route::post('/refresh', 'refresh')->name('refresh');
+        Route::post('/logout', 'logout')->name('logout');
+        Route::post('/register', 'register')->name('register');
         Route::get('/reset-password', 'getReset')->name('getReset');
         Route::post('/reset-password', 'postReset')->name('postReset');
     });

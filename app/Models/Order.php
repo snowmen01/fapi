@@ -15,6 +15,7 @@ class Order extends Model
         'description',
         'total',
         'order_id',
+        'product_id',
         'sku_id',
         'quantity',
         'price',

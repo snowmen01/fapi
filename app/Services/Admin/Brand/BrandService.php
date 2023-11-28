@@ -69,8 +69,10 @@ class BrandService
     public function store($data)
     {
         $brand = $this->brand->create($data);
-        $dataImage = ['path' => $data['images'][0]['url']];
-        $brand->image()->create($dataImage);
+        if (isset($data['images'])) {
+            $dataImage = ['path' => $data['images'][0]['url']];
+            $brand->image()->create($dataImage);
+        }
 
         return $brand;
     }

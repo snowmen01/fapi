@@ -63,7 +63,7 @@ class BannerService
 
     public function getBanners()
     {
-        $banner = $this->banner->where('active',config('constant.active'))->with('image')->get();
+        $banner = $this->banner->where('active', config('constant.active'))->with('image')->get();
 
         return $banner;
     }
@@ -71,8 +71,10 @@ class BannerService
     public function store($data)
     {
         $banner = $this->banner->create($data);
-        $dataImage = ['path' => $data['images'][0]['url']];
-        $banner->image()->create($dataImage);
+        if (isset($data['images'])) {
+            $dataImage = ['path' => $data['images'][0]['url']];
+            $banner->image()->create($dataImage);
+        }
 
         return $banner;
     }

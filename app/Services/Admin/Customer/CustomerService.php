@@ -3,6 +3,10 @@
 namespace App\Services\Admin\Customer;
 
 use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
+use Kjmtrue\VietnamZone\Models\District;
+use Kjmtrue\VietnamZone\Models\Province;
+use Kjmtrue\VietnamZone\Models\Ward;
 
 class CustomerService
 {
@@ -19,7 +23,7 @@ class CustomerService
         $customers = $this->customer->with('image')->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
 
         if (isset($params['keywords'])) {
-            $customers = $customers->where('name', 'LIKE', '%' . $params['keywords'] . '%');
+            $customers = $customers->where('phone', 'LIKE', '%' . $params['keywords'] . '%')->Orwhere('name', 'LIKE', '%' . $params['keywords'] . '%');
         }
 
         if (isset($params['per_page'])) {
@@ -40,7 +44,19 @@ class CustomerService
 
         $customers->map(function ($customer) {
             $customer->name        = limitTo($customer->name, 10);
-            $customer->description = limitTo($customer->description, 10);
+            $ward                  = "";
+            $district              = "";
+            $province              = "";
+            if (isset($customer->ward_id)) {
+                $ward = Ward::find($customer->ward_id)->name;
+            }
+            if (isset($customer->district_id)) {
+                $district = District::find($customer->district_id)->name;
+            }
+            if (isset($customer->province_id)) {
+                $province = Ward::find($customer->province_id)->name;
+            }
+            $customer->address  = $customer->address . ', ' . $ward . ', ' . $district . ', ' . $province;
         });
 
         return $customers;
@@ -53,16 +69,23 @@ class CustomerService
         return $customer;
     }
 
-    public function getBannerById($id)
+    public function getCustomerById($id)
     {
         $customer = $this->customer->with('image')->find($id);
 
         return $customer;
     }
 
-    public function getBanners()
+    public function getCustomerByEmail($email)
     {
-        $customer = $this->customer->where('active',config('constant.active'))->with('image')->get();
+        $customer = $this->customer->with('image')->where('email', $email)->first();
+
+        return $customer;
+    }
+
+    public function getCustomers()
+    {
+        $customer = $this->customer->where('active', config('constant.active'))->with('image')->get();
 
         return $customer;
     }
@@ -70,15 +93,17 @@ class CustomerService
     public function store($data)
     {
         $customer = $this->customer->create($data);
-        $dataImage = ['path' => $data['images'][0]['url']];
-        $customer->image()->create($dataImage);
+        if (isset($data['images'])) {
+            $dataImage = ['path' => $data['images'][0]['url']];
+            $customer->image()->create($dataImage);
+        }
 
         return $customer;
     }
 
     public function update($id, $data)
     {
-        $customer = $this->getBannerById($id);
+        $customer = $this->getCustomerById($id);
         if (isset($data['images'][0]['url'])) {
             $customer->image()->delete();
             $dataImage = ['path' => $data['images'][0]['url']];
@@ -91,7 +116,7 @@ class CustomerService
 
     public function active($id, $data)
     {
-        $customer = $this->getBannerById($id);
+        $customer = $this->getCustomerById($id);
         $customer->update(['active' => $data['active']]);
 
         return $customer;
@@ -99,7 +124,7 @@ class CustomerService
 
     public function delete($id)
     {
-        $customer = $this->getBannerById($id);
+        $customer = $this->getCustomerById($id);
         $customer->image()->delete();
         $customer->delete();
 

@@ -88,4 +88,12 @@ class PropertyService
 
         return $property;
     }
+
+    public function active($id, $data)
+    {
+        $product = $this->getPropertyById($id);
+        $product->update(['active' => $data['active']]);
+
+        return $product;
+    }
 }

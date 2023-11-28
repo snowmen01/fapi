@@ -86,6 +86,35 @@ class ProductService
         return $product;
     }
 
+    public function getProductRelateds($slug)
+    {
+        $product     = $this->product
+            ->where('slug', $slug)
+            ->pluck('id')
+            ->toArray();
+        $categoryId  = $this->product
+            ->where('slug', $slug)
+            ->first()
+            ->category_id;
+        $products    = $this->product
+            ->whereNotIn('id', $product)
+            ->where('category_id', $categoryId)
+            ->with('image', 'galleries', 'galleries.image', 'skus', 'skus.propertyOptions')
+            ->get();
+
+        return $products;
+    }
+
+    public function getlistProductTrendings()
+    {
+        $products    = $this->product
+            ->where('trending', 1)
+            ->with('image', 'galleries', 'galleries.image', 'category', 'brand', 'skus', 'skus.propertyOptions')
+            ->get();
+
+        return $products;
+    }
+
     public function getListProducts()
     {
         $product = $this->product->with('image', 'category', 'brand', 'skus')
@@ -100,8 +129,10 @@ class ProductService
     public function store($data)
     {
         $product = $this->product->create($data);
-        $dataImage = ['path' => $data['images'][0]['url']];
-        $product->image()->create($dataImage);
+        if (isset($data['images'])) {
+            $dataImage = ['path' => $data['images'][0]['url']];
+            $product->image()->create($dataImage);
+        }
 
         if ($data['many_version'] == 1) {
             if (isset($data['properties'])) {

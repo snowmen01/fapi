@@ -162,6 +162,8 @@ return [
         'trending'              => 'nổi bật',
         'property_id'           => 'thuộc tính',
         'image'                 => 'hình ảnh',
+        'phone'                 => 'số điện thoại',
+        'email'                 => 'email',
     ],
 
 ];

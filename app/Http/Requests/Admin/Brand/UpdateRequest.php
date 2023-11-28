@@ -17,7 +17,6 @@ class UpdateRequest extends FormRequest
     {
         $rules = [
             'name'   => 'required|max:191',
-            'active' => 'required',
         ];
 
         return $rules;
@@ -28,6 +27,6 @@ class UpdateRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'statusCode' => 400,
             'data'       => $validator->errors()
-        ],400));
+        ], 400));
     }
 }

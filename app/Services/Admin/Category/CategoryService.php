@@ -47,6 +47,13 @@ class CategoryService
         return $categories;
     }
 
+    public function getCategoriesBySlug($slug)
+    {
+        $category = $this->getCategoryBySlug($slug);
+
+        return $category->products;
+    }
+
     public function show($id)
     {
         $category = $this->category->find($id);
@@ -57,6 +64,13 @@ class CategoryService
     public function getCategoryById($id)
     {
         $category = $this->category->find($id);
+
+        return $category;
+    }
+
+    public function getCategoryBySlug($slug)
+    {
+        $category = $this->category->where('slug', $slug)->with('products.skus', 'products.image')->first();
 
         return $category;
     }

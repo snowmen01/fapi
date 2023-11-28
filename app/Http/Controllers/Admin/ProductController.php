@@ -22,7 +22,6 @@ use Kjmtrue\VietnamZone\Models\District;
 use Kjmtrue\VietnamZone\Models\Province;
 use Kjmtrue\VietnamZone\Models\Ward;
 use Illuminate\Support\Str;
-use PhpOffice\PhpSpreadsheet\Reader\Xls\RC4;
 
 class ProductController extends Controller
 {
@@ -83,6 +82,32 @@ class ProductController extends Controller
         }
     }
 
+    public function getProductRelateds($slug)
+    {
+        try {
+            $product = $this->productService->getProductRelateds($slug);
+
+            return response()->json([
+                'data' => $product
+            ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function getlistProductTrendings()
+    {
+        try {
+            $product = $this->productService->getlistProductTrendings();
+
+            return response()->json([
+                'data' => $product
+            ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
     public function getProductByProperties(Request $request, $slug)
     {
         try {
@@ -92,7 +117,7 @@ class ProductController extends Controller
                 ->havingRaw('COUNT(DISTINCT property_option_id) = ?', [count(array_values($request->all()))])
                 ->pluck('sku_id');
 
-            $skus = Sku::whereIn('id', $skuIds)->where('product_id', $product->id)->get();
+            $skus = Sku::whereIn('id', $skuIds)->where('product_id', $product->id)->with('propertyOptions')->get();
 
             $options = [];
             foreach ($product->skus as $sku) {
@@ -137,6 +162,19 @@ class ProductController extends Controller
 
             return response()->json([
                 'data' => $properties,
+            ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function detailOption(Request $request)
+    {
+        Log::info($request->sku_id);
+        try {
+            $details = Sku::find($request->sku_id)->with('propertyOptions')->first();
+            return response()->json([
+                'data' => $details,
             ]);
         } catch (\Throwable $e) {
             Log::info($e->getMessage());
@@ -268,6 +306,23 @@ class ProductController extends Controller
             return response()->json([
                 'result'  => 0,
                 'message' => "Xoá thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
+    }
+
+    public function active(Request $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $data['active'] = $data['active'] == true ? 1 : 0;
+            $this->productService->active($id, $data);
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Cập nhật thành công!",
             ], 200);
         } catch (\Exception $e) {
             Log::info($e->getMessage());

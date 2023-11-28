@@ -17,7 +17,6 @@ class CreateRequest extends FormRequest
     {
         $rules = [
             'name'   => 'required|max:191',
-            'active' => 'required',
         ];
 
         return $rules;
