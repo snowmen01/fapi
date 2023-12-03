@@ -31,5 +31,8 @@ class Customer extends Model
         return $this->morphOne(Image::class, 'imageable');
     }
 
-    
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

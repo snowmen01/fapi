@@ -49,24 +49,6 @@ class CategoryController extends Controller
         }
     }
 
-    public function getProductByCategorySlug(Request $request, $slug)
-    {
-        try {
-            // $resultCollection = $this->categoryService->index($params);
-
-            // $result = CategoryCollection::collection($resultCollection);
-            $products = $this->categoryService->getCategoriesBySlug($slug);
-
-            return response()->json([
-                'statusCode'    => 200,
-                'message'       => "Lấy dữ liệu thành công",
-                'data'          => $products,
-            ], 200);
-        } catch (\Throwable $e) {
-            Log::info($e->getMessage());
-        }
-    }
-
     public function store(CreateRequest $request)
     {
         try {

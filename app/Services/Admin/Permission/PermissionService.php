@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Repositories\Repository;
+namespace App\Services\Admin\Permission;
 
 use App\Models\Permission;
-use App\Repositories\BaseRepository;
-use App\Repositories\Interface\PermissionRepositoryInterface;
 
-class PermissionRepository extends BaseRepository implements PermissionRepositoryInterface
+class PermissionService
 {
     protected $permission;
 
@@ -27,5 +25,4 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
 
         return $permissions;
     }
-
 }

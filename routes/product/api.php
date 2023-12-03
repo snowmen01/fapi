@@ -7,6 +7,9 @@ Route::middleware(['api'])->group(function () {
     Route::apiResource('/products', ProductController::class);
 
     Route::post('/products/{product}/add-gallery', [ProductController::class, 'productGalleries'])->name('products.productGalleries');
+    Route::get('/products/{product}/add-product-related', [ProductController::class, 'getProductRelatedsPK'])->name('products.getProductRelatedsPK');
+    Route::post('/products/{product}/add-product-related', [ProductController::class, 'postProductRelateds'])->name('products.postProductRelateds');
+    Route::get('/products/public-store/{slug}/categories', [ProductController::class, 'getProductByCategorySlug'])->name('products.getProductByCategorySlug');
     Route::get('/products/public-store/all-product', [ProductController::class, 'getlistProducts'])->name('products.getlistProducts');
     Route::get('/products/public-store/product-trending', [ProductController::class, 'getlistProductTrendings'])->name('products.getlistProductTrendings');
     Route::get('/products/public-store/get-detail-option', [ProductController::class, 'detailOption'])->name('products.detailOption');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Order\OrderCollection;
 use App\Services\Admin\Order\OrderService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -40,12 +41,14 @@ class OrderController extends Controller
     {
         try {
             $params = [
-                'keywords' => $request->keywords,
-                'page'     => $request->page,
-                'per_page' => $request->per_page,
-                'order_by' => $request->order_by,
-                'sort_key' => $request->sort_key,
-                'status'   => $request->status,
+                'keywords'         => $request->keywords,
+                'page'             => $request->page,
+                'per_page'         => $request->per_page,
+                'order_by'         => $request->order_by,
+                'sort_key'         => $request->sort_key,
+                'status'           => $request->status,
+                'payment_type'     => $request->payment_type,
+                'status_payment'   => $request->status_payment,
             ];
 
             $resultCollection = $this->orderService->index($params);
@@ -62,12 +65,9 @@ class OrderController extends Controller
     {
         try {
             $data = $request->all();
-            $this->orderService->store($data);
+            $data = $this->orderService->store($data);
 
-            return response()->json([
-                'result'        => 0,
-                'message'       => "Tạo mới thành công!",
-            ], 200);
+            return response()->json($data);
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
@@ -75,44 +75,43 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $banner           = $this->orderService->getOrderById($id);
-        $banner['active'] = $banner['active'] === 1 ? true : false;
+        $order           = $this->orderService->getOrderById($id);
 
         return response()->json([
-            'data'        => $banner,
+            'data'        => $order,
         ]);
     }
 
-    // public function update(Request $request, $id)
-    // {
-    //     try {
-    //         $data = $request->all();
-    //         $data['active'] = $data['active'] == true ? 1 : 0;
-    //         $this->orderService->update($id, $data);
+    public function update(Request $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $this->orderService->update($id, $data);
 
-    //         return response()->json([
-    //             'result'        => 0,
-    //             'message'       => "Cập nhật thành công!",
-    //         ], 200);
-    //     } catch (\Throwable $th) {
-    //         Log::info($th->getMessage());
-    //     }
-    // }
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
 
-    // public function active(Request $request, $id)
-    // {
-    //     try {
-    //         $data = $request->all();
-    //         $data['active'] = $data['active'] == true ? 1 : 0;
-    //         $this->orderService->active($id, $data);
+    public function payment(Request $request, $code)
+    {
+        try {
+            $data = $request->all();
+            $data['status_payment'] = config('constant.status_payment.paid');
+            $data['payment_at']     = Carbon::now()->toDateTimeString();
+            $this->orderService->payment($code, $data);
 
-    //         return response()->json([
-    //             'result'  => 0,
-    //             'message' => "Cập nhật thành công!",
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::info($e->getMessage());
-    //         return $this->errorBack('Đã xảy ra lỗi');
-    //     }
-    // }
+            return response()->json([
+                'result'  => 0,
+                'message' => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
+    }
 }

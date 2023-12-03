@@ -95,6 +95,19 @@ class ProductController extends Controller
         }
     }
 
+    public function getProductRelatedsPL($slug)
+    {
+        try {
+            $product = $this->productService->getProductRelateds($slug);
+
+            return response()->json([
+                'data' => $product
+            ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
     public function getlistProductTrendings()
     {
         try {
@@ -103,6 +116,28 @@ class ProductController extends Controller
             return response()->json([
                 'data' => $product
             ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function getProductByCategorySlug(Request $request, $slug)
+    {
+        try {
+            $params = [
+                'keywords'       => $request->keywords,
+                'brand_id'       => $request->brand_id,
+                'page'           => $request->page,
+                'per_page'       => 12,
+                'order_by'       => $request->order_by,
+                'sort_key'       => $request->sort_key,
+            ];
+            
+            $resultCollection = $this->productService->search($slug, $params);
+
+            $result = ProductCollection::collection($resultCollection);
+
+            return $result;
         } catch (\Throwable $e) {
             Log::info($e->getMessage());
         }
@@ -159,6 +194,33 @@ class ProductController extends Controller
     {
         try {
             $properties = $this->propertyService->getProperties();
+
+            return response()->json([
+                'data' => $properties,
+            ]);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function postProductRelateds(Request $request, $id)
+    {
+        try {
+            $this->productService->related($id, $request->all());
+
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Thêm mới thành công!",
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function getProductRelatedsPK(Request $request, $id)
+    {
+        try {
+            $properties = $this->productService->getProductRelatedsPK($id);
 
             return response()->json([
                 'data' => $properties,

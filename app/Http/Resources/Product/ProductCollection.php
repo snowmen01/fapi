@@ -15,9 +15,10 @@ class ProductCollection extends JsonResource
         $array = [
             'id'               => $this->id,
             'sku'              => $this->sku,
+            'skus'             => $this->skus,
             'name'             => $this->name,
             'image'            => $this->whenLoaded('image', function () {
-                return $this->image->path;
+                return $this->image;
             }),
             'brand_id'         => $this->brand_id,
             'category_id'      => $this->category_id,

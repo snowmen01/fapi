@@ -4,16 +4,20 @@ namespace App\Services\Admin\Product;
 
 use App\Models\Product;
 use App\Models\PropertyOptionSku;
+use App\Services\Admin\Category\CategoryService;
 use Illuminate\Support\Facades\Log;
 
 class ProductService
 {
     protected $product;
+    protected $categoryService;
 
     public function __construct(
-        Product $product
+        Product $product,
+        CategoryService $categoryService
     ) {
-        $this->product = $product;
+        $this->product         = $product;
+        $this->categoryService = $categoryService;
     }
 
     public function index($params)
@@ -63,6 +67,46 @@ class ProductService
         return $products;
     }
 
+    public function search($slug, $params)
+    {
+        $category = $this->categoryService->getCategoryBySlug2($slug);
+        $products = $this->product
+            ->where('category_id', $category->id)
+            ->where('active', config('constant.active'))
+            ->with('skus', 'image')
+            ->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
+
+        if (isset($params['keywords'])) {
+            $products = $products->where('name', 'LIKE', '%' . $params['keywords'] . '%');
+        }
+
+        if (isset($params['brand_id'])) {
+            $products = $products->where('brand_id', $params['brand_id']);
+        }
+
+        if (isset($params['category_id'])) {
+            $products = $products->where('category_id', $params['category_id']);
+        }
+
+        if (isset($params['per_page'])) {
+            $products = $products
+                ->paginate(
+                    $params['per_page'],
+                    ['*'],
+                    'page',
+                    $params['page'] ?? 1
+                );
+        } else {
+            $products = $products->get();
+        }
+
+        $products->map(function ($product) {
+            $product->name = limitTo($product->name, 10);
+        });
+
+        return $products;
+    }
+
     public function show($id)
     {
         $product = $this->product
@@ -74,14 +118,22 @@ class ProductService
 
     public function getProductById($id)
     {
-        $product = $this->product->with('image', 'galleries', 'galleries.image', 'skus.propertyOptions')->find($id);
+        $product = $this->product->with('image', 'galleries', 'relatedProducts', 'galleries.image', 'skus.propertyOptions')->find($id);
+        $product->relatedProducts->map(function ($related) {
+            $related->data       = $this->product->with('image')->find($related->child_product_id);
+            $related->data->name = limitTo($related->data->name, 6);
+        });
 
         return $product;
     }
 
     public function getProductBySlug($slug)
     {
-        $product = $this->product->with('image', 'galleries', 'galleries.image', 'skus', 'skus.propertyOptions')->where('slug', $slug)->first();
+        $product = $this->product->with('image', 'galleries', 'relatedProducts', 'galleries.image', 'skus', 'skus.propertyOptions')->where('slug', $slug)->first();
+        $product->relatedProducts->map(function ($related) {
+            $related->data = $this->product->with('image')->find($related->child_product_id);
+            $related->data->name = limitTo($related->data->name, 6);
+        });
 
         return $product;
     }
@@ -96,11 +148,22 @@ class ProductService
             ->where('slug', $slug)
             ->first()
             ->category_id;
-        $products    = $this->product
+        $products  = $this->product
             ->whereNotIn('id', $product)
             ->where('category_id', $categoryId)
             ->with('image', 'galleries', 'galleries.image', 'skus', 'skus.propertyOptions')
+            ->limit(5)
             ->get();
+        $products->map(function ($product) {
+            $product->name = limitTo($product->name, 10);
+        });
+
+        return $products;
+    }
+
+    public function getProductRelatedsPK($id)
+    {
+        $products = $this->product->with('relatedProducts', 'image')->whereNotIn("id", [$id])->get();
 
         return $products;
     }
@@ -110,20 +173,27 @@ class ProductService
         $products    = $this->product
             ->where('trending', 1)
             ->with('image', 'galleries', 'galleries.image', 'category', 'brand', 'skus', 'skus.propertyOptions')
+            ->limit(5)
             ->get();
+        $products->map(function ($product) {
+            $product->name = limitTo($product->name, 10);
+        });
 
         return $products;
     }
 
     public function getListProducts()
     {
-        $product = $this->product->with('image', 'category', 'brand', 'skus')
+        $products = $this->product->with('image', 'category', 'brand', 'skus')
             ->where('active', config('constant.active'))
             ->orderBy('id', 'desc')
             ->limit(10)
             ->get();
+        $products->map(function ($product) {
+            $product->name = limitTo($product->name, 10);
+        });
 
-        return $product;
+        return $products;
     }
 
     public function store($data)
@@ -159,6 +229,19 @@ class ProductService
         }
 
         return $product;
+    }
+
+    public function related($id, $data)
+    {
+        $product = $this->getProductById($id);
+        if (isset($data['options'])) {
+            $product->relatedProducts()->delete();
+
+            foreach ($data['options'] as $dt) {
+                $data = ['parent_product_id'=>$product->id,'child_product_id' => $dt['value']];
+                $product->relatedProducts()->create($data);
+            }
+        }
     }
 
     public function gallery($id, $data)

@@ -37,6 +37,11 @@ class Product extends Model
         return $this->morphOne(Image::class, 'imageable');
     }
 
+    public function relatedProducts()
+    {
+        return $this->hasMany(ProductRelated::class, 'parent_product_id');
+    }
+
     public function skus()
     {
         return $this->hasMany(Sku::class);

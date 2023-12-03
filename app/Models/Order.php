@@ -20,6 +20,9 @@ class Order extends Model
         'quantity',
         'price',
         'status',
+        'payment_type',
+        'payment_at',
+        'status_payment',
         'code',
         'address',
     ];
@@ -42,6 +45,16 @@ class Order extends Model
 
     public function childrenOrders()
     {
-        return $this->hasMany(Order::class)->with('orders');
+        return $this->hasMany(Order::class)->with('orders', 'product', 'product.image', 'sku.propertyOptions');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
     }
 }

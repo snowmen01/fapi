@@ -40,8 +40,9 @@ class Invoice extends Mailable
 
     public function envelope(): Envelope
     {
+        $code = $this->invoiceData->code;
         return new Envelope(
-            subject: 'Hoá đơn đặt hàng',
+            subject: "Đơn hàng #$code đã đặt thành công!",
         );
     }
 

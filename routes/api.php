@@ -7,14 +7,15 @@ use App\Http\Controllers\Auth\Client\AuthController as ClientAuthController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__ . "/banner/api.php";
+require __DIR__ . "/blog/api.php";
 require __DIR__ . "/brand/api.php";
 require __DIR__ . "/category/api.php";
 require __DIR__ . "/customer/api.php";
 require __DIR__ . "/order/api.php";
 require __DIR__ . "/product/api.php";
+require __DIR__ . "/property/api.php";
 require __DIR__ . "/role/api.php";
 require __DIR__ . "/user/api.php";
-require __DIR__ . "/property/api.php";
 
 #--Auth
 Route::controller(AuthController::class)

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Brand;
+namespace App\Http\Resources\Blog;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BrandCollection extends JsonResource
+class BlogCollection extends JsonResource
 {
     public function toArray($request)
     {
@@ -15,9 +15,10 @@ class BrandCollection extends JsonResource
         $array = [
             'id'               => $this->id,
             'image'            => $this->whenLoaded('image', function () {
-                return $this->image;
+                return $this->image->path;
             }),
             'name'             => $this->name,
+            'active'           => $this->active,
             'description'      => $this->description,
             'slug'             => $this->slug,
             'createdAt'        => $this->created_at,

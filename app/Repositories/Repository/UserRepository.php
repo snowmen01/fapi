@@ -34,7 +34,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
     public function getUserbyRefreshToken($data)
     {
-        $user = $this->user->where('refresh_token', $data['refresh_token'])->first();
+        $user = $this->user->where('refresh_token', $data['refreshToken'])->first();
 
         return $user;
     }

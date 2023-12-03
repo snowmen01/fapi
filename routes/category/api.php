@@ -7,5 +7,4 @@ Route::middleware(['api'])->group(function () {
     Route::apiResource('/categories', CategoryController::class);
 
     Route::post('/categories/active/{category}', [CategoryController::class, 'active'])->name('categories.active');
-    Route::get('/categories/public-store/{slug}', [CategoryController::class, 'getProductByCategorySlug'])->name('categories.getProductByCategorySlug');
 });

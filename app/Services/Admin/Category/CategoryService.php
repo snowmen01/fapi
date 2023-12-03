@@ -75,6 +75,13 @@ class CategoryService
         return $category;
     }
 
+    public function getCategoryBySlug2($slug)
+    {
+        $category = $this->category->where('slug', $slug)->first();
+
+        return $category;
+    }
+
     public function getCategories()
     {
         $categories = $this->category->where('active', config('constant.active'))->orderBy('name', 'asc')->get();

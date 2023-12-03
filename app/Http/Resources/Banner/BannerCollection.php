@@ -15,7 +15,7 @@ class BannerCollection extends JsonResource
         $array = [
             'id'               => $this->id,
             'image'            => $this->whenLoaded('image', function () {
-                return $this->image->path;
+                return $this->image;
             }),
             'name'             => $this->name,
             'position'         => $this->name,
