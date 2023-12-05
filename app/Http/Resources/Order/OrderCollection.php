@@ -23,6 +23,7 @@ class OrderCollection extends JsonResource
             'price'                 => $this->price,
             'description'           => $this->description,
             'code'                  => $this->code,
+            'coupon_id'             => $this->coupon_id,
             'address'               => $this->address,
             'createdAt'             => $this->createdAt,
             'paymentAt'             => $this->paymentAt,

@@ -39,7 +39,7 @@ class CategoryService
             $categories = $categories->get();
         }
 
-        $categories->map(function($category){
+        $categories->map(function ($category) {
             $category->name        = limitTo($category->name, 10);
             $category->description = limitTo($category->description, 10);
         });
@@ -64,6 +64,17 @@ class CategoryService
     public function getCategoryById($id)
     {
         $category = $this->category->find($id);
+
+        return $category;
+    }
+
+    public function getCategoryMenubar()
+    {
+        $category = $this->category
+            ->where('active', config('constant.active'))
+            ->where('home', config('constant.active'))
+            ->limit(6)
+            ->get();
 
         return $category;
     }

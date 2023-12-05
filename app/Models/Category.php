@@ -11,7 +11,7 @@ class Category extends Model
 
     const TABLE = 'categories';
     protected $table = self::TABLE;
-    protected $fillable = ['name', 'category_id', 'description', 'slug', 'active'];
+    protected $fillable = ['name', 'category_id', 'description', 'slug', 'active', 'home'];
     public $timestamps = true;
 
     public function products()

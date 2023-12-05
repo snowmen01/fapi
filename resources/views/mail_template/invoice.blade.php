@@ -258,7 +258,13 @@
             </tr>
         </tbody>
     </table>
+    @php
+        $total = 0;
+    @endphp
     @foreach ($invoiceData->childrenOrders as $index => $item)
+    @php
+        $total += $item->quantity * $item->price;
+    @endphp
         <table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0"
             id="m_7148987284169429276backgroundTable">
             <tbody>
@@ -448,7 +454,7 @@
                                                                                 </td>
                                                                                 <td style="word-break:break-word;text-align:left;font-family:Helvetica,arial,sans-serif;font-size:13px;color:#000000;vertical-align:top"
                                                                                     width="49%">
-                                                                                    ₫{{ number_format($invoiceData['total'], 0, ',', '.') }}
+                                                                                    ₫{{ number_format($total, 0, ',', '.') }}
                                                                                 </td>
                                                                             </tr>
                                                                             <tr>
@@ -456,7 +462,7 @@
                                                                                     width="49%">Giảm giá:
                                                                                 </td>
                                                                                 <td style="word-break:break-word;text-align:left;font-family:Helvetica,arial,sans-serif;font-size:13px;color:#000000;vertical-align:top"
-                                                                                    width="49%">₫1,500
+                                                                                    width="49%">₫{{ number_format($total-$invoiceData['total'], 0, ',', '.') }}
                                                                                 </td>
                                                                             </tr>
                                                                             <tr>

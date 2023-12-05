@@ -7,5 +7,9 @@ Route::middleware(['api'])->group(function () {
     Route::apiResource('/orders', OrderController::class);
 
     Route::post('/orders/status-order/{code}', [OrderController::class, 'status'])->name('orders.status');
+    Route::get('/orders/search-order/{code}', [OrderController::class, 'searchOrder'])->name('orders.searchOrder');
+    Route::get('/orders/vnpay/{code}', [OrderController::class, 'vnpay2'])->name('orders.vnpay2');
+    Route::get('/orders/status-order/cancelled/{code}', [OrderController::class, 'cancelled'])->name('orders.cancelled');
+    Route::get('/orders/status-payment/check-coupon/{customer}/{coupon}', [OrderController::class, 'checkCoupon'])->name('orders.checkCoupon');
     Route::post('/orders/status-payment/{code}', [OrderController::class, 'payment'])->name('orders.payment');
 });

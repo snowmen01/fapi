@@ -24,6 +24,17 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    public function checkCoupon($customer, $coupon)
+    {
+        try {
+            $result = $this->orderService->checkCoupon($customer, $coupon);
+
+            return $result;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
     public function getAllFront(Request $request)
     {
         try {
@@ -67,7 +78,31 @@ class OrderController extends Controller
             $data = $request->all();
             $data = $this->orderService->store($data);
 
-            return response()->json($data);
+            return $data;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
+    public function vnpay2(Request $request, $code)
+    {
+        try {
+            $data = $request->all();
+            $data = $this->orderService->vnpay2($code);
+
+            return $data;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
+    public function cancelled(Request $request, $code)
+    {
+        try {
+            $data = $request->all();
+            $data = $this->orderService->cancelled($code);
+
+            return $data;
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
@@ -80,6 +115,22 @@ class OrderController extends Controller
         return response()->json([
             'data'        => $order,
         ]);
+    }
+
+    public function searchOrder($code)
+    {
+        $order           = $this->orderService->getOrderByCode($code);
+        if(!$order){
+            return response()->json([
+                'statusCode'     => 400,
+                'message'        => "Không tìm thấy đơn đặt hàng này.",
+            ], 400);
+        }
+
+        return response()->json([
+            'data'        => $order,
+            'message'     => "Tìm thấy đơn hàng yêu cầu."
+        ], 200);
     }
 
     public function update(Request $request, $id)

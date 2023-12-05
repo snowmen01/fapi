@@ -24,6 +24,7 @@ class Order extends Model
         'payment_at',
         'status_payment',
         'code',
+        'coupon_id',
         'address',
     ];
     public $timestamps = true;

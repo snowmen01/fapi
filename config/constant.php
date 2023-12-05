@@ -45,10 +45,18 @@ return [
         'unpaid'  => 0,
         'paid'    => 1,
     ],
+    'type_coupon' => [
+        'percent'    => 0,
+        'numeric'    => 1,
+    ],
+    'type_coupon_common' => [
+        0    => "Phần trăm",
+        1    => "Tiền",
+    ],
     'status_order_common' => [
         -1   => 'Hủy đơn',
         0    => 'Đang đợi xác nhận',
-        1    => 'Đã giao cho đơn vị vận chuyển',
+        1    => 'Xác nhận đơn hàng',
         2    => 'Đang giao hàng',
         3    => 'Đã giao hàng',
         4    => 'Hoàn thành',

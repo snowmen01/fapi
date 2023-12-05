@@ -10,10 +10,12 @@ require __DIR__ . "/banner/api.php";
 require __DIR__ . "/blog/api.php";
 require __DIR__ . "/brand/api.php";
 require __DIR__ . "/category/api.php";
+require __DIR__ . "/coupon/api.php";
 require __DIR__ . "/customer/api.php";
 require __DIR__ . "/order/api.php";
 require __DIR__ . "/product/api.php";
 require __DIR__ . "/property/api.php";
+require __DIR__ . "/revenues/api.php";
 require __DIR__ . "/role/api.php";
 require __DIR__ . "/user/api.php";
 

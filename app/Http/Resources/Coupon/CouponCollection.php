@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Blog;
+namespace App\Http\Resources\Coupon;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BlogCollection extends JsonResource
+class CouponCollection extends JsonResource
 {
     public function toArray($request)
     {
@@ -14,15 +14,14 @@ class BlogCollection extends JsonResource
 
         $array = [
             'id'               => $this->id,
-            'image'            => $this->whenLoaded('image', function () {
-                return $this->image;
-            }),
             'name'             => $this->name,
+            'code'             => $this->code,
+            'value'            => $this->value,
+            'count'            => $this->count,
+            'type'             => $this->type,
             'active'           => $this->active,
             'description'      => $this->description,
-            'slug'             => $this->slug,
-            'createdAt'        => $this->created_at,
-            'updatedAt'        => $this->updated_at,
+            'expiredDate'      => $this->expired_at
         ];
 
         return $array;

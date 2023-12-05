@@ -5,7 +5,6 @@ namespace App\Services\Admin\Product;
 use App\Models\Product;
 use App\Models\PropertyOptionSku;
 use App\Services\Admin\Category\CategoryService;
-use Illuminate\Support\Facades\Log;
 
 class ProductService
 {
@@ -56,9 +55,9 @@ class ProductService
             $product->name                = limitTo($product->name, 10);
             $product->category_id         = $product->category->name;
             $product->brand_id            = $product->brand->name;
-            $product->quantity            = $product->quantity . " sản phẩm của 1 loại";
+            $product->quantity            = ($product->quantity != null ? $product->quantity : 0) - ($product->sold_quantity != null ? $product->sold_quantity : 0) . " sản phẩm của 1 loại";
             if ($product->many_version == 1) {
-                $product->quantity = $product->skus()->sum('quantity') . " sản phẩm của " . $product->skus()->count('id') . " loại";
+                $product->quantity = $product->skus()->sum('quantity') - $product->skus()->sum('sold_quantity') . " sản phẩm của " . $product->skus()->count('id') . " loại";
                 $product->price    = $product->skus[0]->price;
             }
             $product->description         = limitTo($product->description, 10);
@@ -119,6 +118,13 @@ class ProductService
     public function getProductById($id)
     {
         $product = $this->product->with('image', 'galleries', 'relatedProducts', 'galleries.image', 'skus.propertyOptions')->find($id);
+        if ($product->many_version == 1) {
+            $product->skus->map(function ($sku) {
+                $sku->quantity      = $sku->quantity - $sku->sold_quantity;
+            });
+        } else {
+            $product->quantity   = $product->quantity - $product->sold_quantity;
+        }
         $product->relatedProducts->map(function ($related) {
             $related->data       = $this->product->with('image')->find($related->child_product_id);
             $related->data->name = limitTo($related->data->name, 6);
@@ -238,7 +244,7 @@ class ProductService
             $product->relatedProducts()->delete();
 
             foreach ($data['options'] as $dt) {
-                $data = ['parent_product_id'=>$product->id,'child_product_id' => $dt['value']];
+                $data = ['parent_product_id' => $product->id, 'child_product_id' => $dt['value']];
                 $product->relatedProducts()->create($data);
             }
         }

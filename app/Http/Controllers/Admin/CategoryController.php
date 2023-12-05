@@ -54,6 +54,7 @@ class CategoryController extends Controller
         try {
             $data = $request->all();
             $data['active'] = $data['active'] == true ? 1 : 0;
+            $data['home']   = $data['home'] == true ? 1 : 0;
             $data['slug']   = Str::slug($data['name'], '-');
 
             $this->categoryService->store($data);
@@ -76,11 +77,21 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function getMenuBar()
+    {
+        $category           = $this->categoryService->getCategoryMenubar();
+
+        return response()->json([
+            'data'        => $category,
+        ]);
+    }
+
     public function update(UpdateRequest $request, $id)
     {
         try {
             $data = $request->all();
             $data['active'] = $data['active'] == true ? 1 : 0;
+            $data['home']   = $data['home'] == true ? 1 : 0;
             $data['slug']   = Str::slug($data['name'], '-');
 
             $this->categoryService->update($id, $data);
@@ -98,6 +109,7 @@ class CategoryController extends Controller
         try {
             $data = $request->all();
             $data['active'] = $data['active'] == true ? 1 : 0;
+            $data['home']   = $data['home']   == true ? 1 : 0;
             $this->categoryService->active($id, $data);
 
             return response()->json([

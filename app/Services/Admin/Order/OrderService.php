@@ -11,8 +11,10 @@ use LaravelDaily\Invoices\Invoice;
 use LaravelDaily\Invoices\Classes\InvoiceItem;
 use LaravelDaily\Invoices\Classes\Party;
 use App\Mail\Invoice as MailInvoice;
+use App\Models\CustomerCoupon;
 use App\Models\PropertyOption;
 use App\Models\Sku;
+use App\Services\Admin\Coupon\CouponService;
 use App\Services\Admin\Customer\CustomerService as CustomerCustomerService;
 use App\Services\Admin\Product\ProductService;
 use App\Services\Admin\Property\PropertyService;
@@ -25,6 +27,8 @@ class OrderService
     protected $customerService;
     protected $productService;
     protected $propertyService;
+    protected $couponService;
+    protected $customerCoupon;
     protected $sku;
 
     public function __construct(
@@ -32,6 +36,8 @@ class OrderService
         CustomerCustomerService $customerService,
         ProductService $productService,
         PropertyService $propertyService,
+        CouponService $couponService,
+        CustomerCoupon $customerCoupon,
         Sku $sku,
     ) {
         $this->order            = $order;
@@ -39,6 +45,8 @@ class OrderService
         $this->productService   = $productService;
         $this->sku              = $sku;
         $this->propertyService  = $propertyService;
+        $this->couponService    = $couponService;
+        $this->customerCoupon   = $customerCoupon;
     }
 
     public function index($params)
@@ -90,6 +98,47 @@ class OrderService
         return $orders;
     }
 
+    public function checkCoupon($customerId, $code)
+    {
+        $coupon = $this->couponService->getCouponByCode($code);
+        if (!$coupon) {
+            return response()->json([
+                "message" => "Mã khuyến mãi không tồn tại.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
+        $check = $this->customerCoupon->where('customer_id', $customerId)->where('coupon_id', $coupon->id)->first();
+        if ($check) {
+            return response()->json([
+                "message" => "Mã khuyến mãi đã được bạn sử dụng.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
+        $specificDate = Carbon::parse($coupon->expired_at)->endOfDay();
+        $nowDate      = Carbon::now();
+        if (!$nowDate->lte($specificDate)) {
+            return response()->json([
+                "message" => "Mã khuyến mãi đã hết hạn sử dụng.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
+        if ($coupon->count == 0) {
+            return response()->json([
+                "message" => "Mã khuyến mãi đã hết lượt sử dụng.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
+        return response()->json([
+            "message"    => "Áp dụng mã khuyến mãi $coupon->code thành công.",
+            "data"       => $coupon,
+            "statusCode" => 200
+        ], 200);
+    }
+
     public function show($id)
     {
         $order = $this->order->with('image')->find($id);
@@ -107,6 +156,17 @@ class OrderService
     public function update($id, $data)
     {
         $order = $this->findOne($id);
+        if ($order->status == 0 && $data['status'] != -1) {
+            foreach ($order->childrenOrders as $child) {
+                if ($child->sku_id == null) {
+                    $product = $this->productService->getProductById($child->product_id);
+                    $product->update(['sold_quantity' => ($product->sold_quantity + $child->quantity)]);
+                } else {
+                    $product = $this->sku->find($child->sku_id);
+                    $product->update(['sold_quantity' => ($product->sold_quantity + $child->quantity)]);
+                }
+            }
+        }
         if ($data['status'] == 4) {
             $data['status_payment'] = 1;
         }
@@ -130,13 +190,38 @@ class OrderService
         $order->status_payment_code     = $order->status_payment;
         $order->status_payment          = config("constant.status_payment_common.$order->status_payment");
         $order->payment_type            = config("constant.payment_type_common.$order->payment_type");
+        $coupon                         = $this->couponService->getCouponById($order->coupon_id);
+        $total = 0;
+        foreach ($order->childrenOrders as $child) {
+            $total += $child->quantity * $child->price;
+        }
+        $order->discount                = $coupon ? ($coupon->type == 0 ? ($total * $coupon->value) / 100 : $coupon->value) : 0;
+        $order->total2                  = $total;
 
         return $order;
     }
 
     public function getOrderByCode($code)
     {
-        $order = $this->order->where('code', $code)->first();
+        $order                          = $this->order->with('customer', 'childrenOrders.product', 'product.image', 'childrenOrders')->where('code', $code)->first();
+        if (!$order) {
+            return;
+        }
+        $order->createdAt               = date('d-m-Y H:i:s', strtotime($order->created_at));
+        $order->paymentAt               = date('d-m-Y H:i:s', strtotime($order->payment_at));
+        $order->filename                = $order->code . '_' . Str::slug($order->customer->name) . '.pdf';
+        $order->status_code             = $order->status;
+        $order->status                  = config("constant.status_order_common.$order->status");
+        $order->status_payment_code     = $order->status_payment;
+        $order->status_payment          = config("constant.status_payment_common.$order->status_payment");
+        $order->payment_type            = config("constant.payment_type_common.$order->payment_type");
+        $coupon                         = $this->couponService->getCouponById($order->coupon_id);
+        $total = 0;
+        foreach ($order->childrenOrders as $child) {
+            $total += $child->quantity * $child->price;
+        }
+        $order->discount                = $coupon ? ($coupon->type == 0 ? ($total * $coupon->value) / 100 : $coupon->value) : 0;
+        $order->total2                  = $total;
 
         return $order;
     }
@@ -168,14 +253,15 @@ class OrderService
 
         $customer = (new Party([
             'name'          => $user->name,
-            'address'       => $user->address,
+            'phone'         => $user->phone,
+            'address'       => $orderParent->address,
             'custom_fields' => [
                 'Mã hóa đơn' => $orderParent->code,
             ],
         ]));
 
         $items = [];
-        foreach ($orderParent->childrenOrders as $child) {
+        foreach ($orderParent->childrenOrders as $key => $child) {
             $product = $this->productService->getProductById($child->product_id);
             $title   = $product->name;
             $opt     = "";
@@ -189,7 +275,19 @@ class OrderService
                     }
                 }
             }
-            $items[] = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity);
+            if ($key == 0) {
+                if ($orderParent->coupon_id != null) {
+                    $coupon   = $this->couponService->getCouponById($orderParent->coupon_id);
+                    $total = 0;
+                    foreach ($orderParent->childrenOrders as $child2) {
+                        $total += $child2->quantity * $child2->price;
+                    }
+                    $discount = $coupon ? ($coupon->type == 0 ? ($total * $coupon->value) / 100 : $coupon->value) : 0;
+                    $items[]  = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity)->discount($discount);
+                }
+            } else {
+                $items[]  = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity);
+            }
         }
 
         $notes = $orderParent->description ?? 'Đây là hóa đơn điện tử tự động.';
@@ -275,14 +373,44 @@ class OrderService
         return $returnData;
     }
 
+    public function vnpay2($code)
+    {
+        $order = $this->getOrderByCode($code);
+        $data  = $this->vnpay($order->code, $order->total);
+
+        return response()->json([
+            'statusCode'    => 200,
+            'url'          => $data['data']
+        ], 200);
+    }
+
     public function store($data)
     {
+        foreach ($data['carts'] as $cart) {
+            $skuId = $cart['sku_id'];
+            $product = ($skuId >= 0) ? $this->sku->find($skuId) : $this->productService->getProductById($cart['id']);
+            $remainQuantity = $product->quantity - $product->sold_quantity;
+
+            if ($remainQuantity < $cart['quantity']) {
+                $productName = ((int)$skuId >= 0) ? $this->productService->getProductById($product->product_id)->name : $product->name;
+
+                return response()->json([
+                    'statusCode' => 400,
+                    'message' => "Số lượng còn lại trong kho của sản phẩm $productName không được vượt quá $remainQuantity. Quý khách vui lòng cập nhật lại giỏ hàng để tiếp tục.",
+                ], 400);
+            }
+        }
+
+        if (isset($data['couponCode'])) {
+            $coupon = $this->couponService->getCouponByCode($data['couponCode']);
+        }
         $parentOrder = [
             'customer_id'   => $data['customerId'],
             'address'       => $data['address'],
             'description'   => $data['description'],
             'code'          => 'FSTUDIOBYFPT' . random_int(1, 999999) . strtoupper(Str::random(2)),
             'payment_type'  => $data['typePayment'],
+            'coupon_id'     => $coupon ? $coupon->id : "",
         ];
         $sku             = $this->sku;
         $productService  = $this->productService;
@@ -291,45 +419,55 @@ class OrderService
         $order           = $this->order->create($parentOrder);
         $total           = 0;
         $childOrder = [];
-        if (isset($data['carts'])) {
-            foreach ($data['carts'] as $cart) {
-                $total += (float)($cart['quantity'] * $cart['price']);
-                $childOrder[] = [
-                    'order_id'      => $order->id,
-                    'product_id'    => $cart['id'],
-                    'sku_id'        => $cart['sku_id'] >= 0 ? $cart['sku_id'] : null,
-                    'price'         => $cart['price'],
-                    'quantity'      => $cart['quantity'],
-                    'status'        => null,
-                ];
-            }
+        foreach ($data['carts'] as $cart) {
+            $total += (float)($cart['quantity'] * $cart['price']);
+            $childOrder[] = [
+                'order_id'      => $order->id,
+                'product_id'    => $cart['id'],
+                'sku_id'        => $cart['sku_id'] >= 0 ? $cart['sku_id'] : null,
+                'price'         => $cart['price'],
+                'quantity'      => $cart['quantity'],
+                'status'        => null,
+            ];
         }
         $order->childrenOrders()->createMany($childOrder);
+        if ($coupon) {
+            $total -= ($coupon->type == 0) ? ($total * $coupon->value) / 100 : $coupon->value;
+        }
+
+        $coupon->update(['count' => $coupon->count - 1]);
+        $this->customerCoupon->create(['coupon_id' => $coupon->id, 'customer_id' => $data['customerId']]);
         $order->update(['total' => $total]);
+
         $user = $this->customerService->getCustomerById($data['customerId']);
         $link = $this->exportInvoice($user, $order);
         Mail::to($user->email)->send(new MailInvoice($order, $link, $productService, $sku, $propertyService, $customerService));
-        if ($order->payment_type == config('constant.payment_type.vnpay')) {
-            $dataTranfer = $this->vnpay($order->code, $order->total);
-            return [
-                'statusCode'    => 200,
-                'message'       => "Đặt hàng thành công",
-                'url'           => $dataTranfer['data']
-            ];
-        }
 
-        return [
+        return response()->json([
             'statusCode'    => 200,
             'message'       => "Đặt hàng thành công",
-        ];
+            'code'          => $order->code
+        ], 200);
     }
 
     public function payment($code, $data)
     {
-        $order = $this->getOrderByCODE($code);
+        $order = $this->order->where('code', $code)->first();
         $order->update(['status_payment' => $data['status_payment'], 'payment_at' => $data['payment_at']]);
 
         return $order;
+    }
+
+    public function cancelled($code)
+    {
+        $order = $this->order->where('code', $code)->first();
+        $order->update(['status' => config('constant.status_order.cancelled')]);
+
+        return response()->json([
+            'statusCode'    => 200,
+            'message'       => "Hủy đặt hàng thành công!",
+            'code'          => $order->code
+        ], 200);
     }
 
     public function delete($id)
