@@ -387,8 +387,8 @@ class OrderService
     public function store($data)
     {
         foreach ($data['carts'] as $cart) {
-            $skuId = $cart['sku_id'];
-            $product = ($skuId >= 0) ? $this->sku->find($skuId) : $this->productService->getProductById($cart['id']);
+            $skuId = $cart['id'];
+            $product = ($cart['sku_id'] !== null) ? $this->sku->find($cart['sku_id']) : $this->productService->getProductById($cart['id']);
             $remainQuantity = $product->quantity - $product->sold_quantity;
 
             if ($remainQuantity < $cart['quantity']) {
