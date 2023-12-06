@@ -275,19 +275,8 @@ class OrderService
                     }
                 }
             }
-            if ($key == 0) {
-                if ($orderParent->coupon_id != null) {
-                    $coupon   = $this->couponService->getCouponById($orderParent->coupon_id);
-                    $total = 0;
-                    foreach ($orderParent->childrenOrders as $child2) {
-                        $total += $child2->quantity * $child2->price;
-                    }
-                    $discount = $coupon ? ($coupon->type == 0 ? ($total * $coupon->value) / 100 : $coupon->value) : 0;
-                    $items[]  = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity)->discount($discount);
-                }
-            } else {
-                $items[]  = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity);
-            }
+
+            $items[]  = (new InvoiceItem())->title("$title $opt")->pricePerUnit($child->price)->quantity($child->quantity);
         }
 
         $notes = $orderParent->description ?? 'Đây là hóa đơn điện tử tự động.';
@@ -387,12 +376,12 @@ class OrderService
     public function store($data)
     {
         foreach ($data['carts'] as $cart) {
-            $skuId = $cart['id'];
+            $skuId = $cart['sku_id'];
             $product = ($cart['sku_id'] !== null) ? $this->sku->find($cart['sku_id']) : $this->productService->getProductById($cart['id']);
-            $remainQuantity = $product->quantity - $product->sold_quantity;
+            $remainQuantity = $product->quantity;
 
             if ($remainQuantity < $cart['quantity']) {
-                $productName = ((int)$skuId >= 0) ? $this->productService->getProductById($product->product_id)->name : $product->name;
+                $productName = ($skuId != null) ? $this->productService->getProductById($product->product_id)->name : $product->name;
 
                 return response()->json([
                     'statusCode' => 400,
@@ -400,7 +389,7 @@ class OrderService
                 ], 400);
             }
         }
-
+        $coupon = null;
         if (isset($data['couponCode'])) {
             $coupon = $this->couponService->getCouponByCode($data['couponCode']);
         }
@@ -410,7 +399,7 @@ class OrderService
             'description'   => $data['description'],
             'code'          => 'FSTUDIOBYFPT' . random_int(1, 999999) . strtoupper(Str::random(2)),
             'payment_type'  => $data['typePayment'],
-            'coupon_id'     => $coupon ? $coupon->id : "",
+            'coupon_id'     => isset($coupon) ? $coupon->id : null,
         ];
         $sku             = $this->sku;
         $productService  = $this->productService;
@@ -433,10 +422,10 @@ class OrderService
         $order->childrenOrders()->createMany($childOrder);
         if ($coupon) {
             $total -= ($coupon->type == 0) ? ($total * $coupon->value) / 100 : $coupon->value;
+            $coupon->update(['count' => $coupon->count - 1]);
+            $this->customerCoupon->create(['coupon_id' => $coupon->id, 'customer_id' => $data['customerId']]);
         }
 
-        $coupon->update(['count' => $coupon->count - 1]);
-        $this->customerCoupon->create(['coupon_id' => $coupon->id, 'customer_id' => $data['customerId']]);
         $order->update(['total' => $total]);
 
         $user = $this->customerService->getCustomerById($data['customerId']);
