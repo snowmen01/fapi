@@ -16,10 +16,6 @@ class Customer extends Model
         'name',
         'phone',
         'dob',
-        'province_id',
-        'district_id',
-        'ward_id',
-        'address',
         'email',
         'password',
         'active'
@@ -29,6 +25,11 @@ class Customer extends Model
     public function image()
     {
         return $this->morphOne(Image::class, 'imageable');
+    }
+
+    public function adresss()
+    {
+        return $this->hasMany(CustomerAddress::class);
     }
 
     public function orders()

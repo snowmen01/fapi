@@ -71,6 +71,7 @@ class CategoryController extends Controller
     {
         $category           = $this->categoryService->getCategoryById($id);
         $category['active'] = $category['active'] === 1 ? true : false;
+        $category['home']   = $category['home']   == 1 ? true : false;
 
         return response()->json([
             'data'        => $category,

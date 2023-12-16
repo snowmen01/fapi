@@ -2,15 +2,97 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\RevenuesExport;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Order\OrderCollection;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Revenue;
+use App\Services\Admin\Order\OrderService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RevenueController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(
+        OrderService $orderService
+    ) {
+        $this->middleware("permission:" . config('permissions')['super_admin'] . "|" . config('permissions')['develop'] . "", ['only' => ['index', 'show']]);
+
+        $this->orderService = $orderService;
+    }
+
+    public function index(Request $request)
+    {
+        try {
+            $params = [
+                'keywords'         => $request->keywords,
+                'page'             => $request->page,
+                'per_page'         => $request->per_page,
+                'order_by'         => $request->order_by,
+                'sort_key'         => $request->sort_key,
+                'status'           => $request->status,
+                'payment_type'     => $request->payment_type,
+                'from'             => $request->from,
+                'to'               => $request->to,
+            ];
+
+            $resultCollection = $this->orderService->indexRevenues($params);
+
+            $result = OrderCollection::collection($resultCollection);
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function export(Request $request)
+    {
+        $params = [
+            'keywords'         => $request->keywords,
+            'page'             => $request->page,
+            'per_page'         => $request->per_page,
+            'order_by'         => $request->order_by,
+            'sort_key'         => $request->sort_key,
+            'status'           => $request->status,
+            'payment_type'     => $request->payment_type,
+            'from'             => $request->from,
+            'to'               => $request->to,
+        ];
+        $orders = Order::with('childrenOrders', 'customer')
+            ->whereNull('order_id')
+            ->whereIn('status', [3, 4])
+            ->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
+
+        if (isset($params['from'], $params['to'])) {
+            $from = Carbon::createFromFormat('D M d Y H:i:s e+', $params['from'])->startOfDay();
+            $to = Carbon::createFromFormat('D M d Y H:i:s e+', $params['to'])->startOfDay();
+            $orders = $orders->whereRaw("`created_at` BETWEEN '$from' AND '$to'");
+        }
+
+        if (isset($params['keywords'])) {
+            $orders = $orders->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
+                ->where('customers.phone', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('code', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('customers.name', 'LIKE', '%' . $params['keywords'] . '%')
+                ->select('orders.*');
+        }
+
+        if (isset($params['payment_type'])) {
+            $orders = $orders->where('payment_type', $params['payment_type']);
+        }
+        $response = Excel::download(new RevenuesExport($orders->get()), 'revenues.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        ob_end_clean();
+
+        return $response;
+    }
+
     public function totalRevenue()
     {
         $currentMonth = date('m');
@@ -22,14 +104,14 @@ class RevenueController extends Controller
         $currentMonthData = Order::whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->whereNull('order_id')
-            ->where('status', 4)
+            ->whereIn('status', [3, 4])
             ->where('status_payment', 1)
             ->sum('total');
 
         $previousMonthData = Order::whereMonth('created_at', $previousMonth)
             ->whereYear('created_at', $previousYear)
             ->whereNull('order_id')
-            ->where('status', 4)
+            ->whereIn('status', [3, 4])
             ->where('status_payment', 1)
             ->sum('total');
 
@@ -94,7 +176,7 @@ class RevenueController extends Controller
                 ->whereMonth('created_at', $i)
                 ->whereYear('created_at', $currentYear)
                 ->whereNull('order_id')
-                ->where('status', 4)
+                ->whereIn('status', [3, 4])
                 ->where('status_payment', 1)
                 ->groupBy('payment_type')
                 ->get();
@@ -177,14 +259,14 @@ class RevenueController extends Controller
         $currentMonthData = Order::whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->whereNull('order_id')
-            ->where('status', 4)
+            ->whereIn('status', [3, 4])
             ->where('status_payment', 1)
             ->count('id');
 
         $previousMonthData = Order::whereMonth('created_at', $previousMonth)
             ->whereYear('created_at', $previousYear)
             ->whereNull('order_id')
-            ->where('status', 4)
+            ->whereIn('status', [3, 4])
             ->where('status_payment', 1)
             ->count('id');
 
@@ -206,7 +288,7 @@ class RevenueController extends Controller
             $totalRevenueByMonth[date("F", mktime(0, 0, 0, $i, 1, $currentYear))] = Order::whereMonth('created_at', $i)
                 ->whereYear('created_at', $currentYear)
                 ->whereNull('order_id')
-                ->where('status', 4)
+                ->whereIn('status', [3, 4])
                 ->where('status_payment', 1)
                 ->sum('total');
         }
@@ -226,17 +308,33 @@ class RevenueController extends Controller
 
     public function topSaleProductMonth()
     {
-        $currentMonth = date('m');
-        $currentYear = date('Y');
-
-        $topProducts = Order::select('product_id', DB::raw('SUM(quantity) as totalQuantity'))
-            ->with('product', 'product.image')
-            ->whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear)
-            ->groupBy('product_id')
-            ->orderByDesc('totalQuantity')
-            ->take(5)
+        $orders = Order::whereNotIn('status', [-1, 0])
+            ->whereMonth('created_at', date('m'))
+            ->whereYear('created_at', date('Y'))
+            ->with(['childrenOrders' => function ($query) {
+                $query->select('order_id', 'product_id', DB::raw('SUM(quantity) as totalQuantity'))
+                    ->groupBy('order_id', 'product_id');
+            }])
             ->get();
+
+        $productQuantities = [];
+
+        foreach ($orders as $order) {
+            foreach ($order->childrenOrders as $childOrder) {
+                $product_id = $childOrder->product_id;
+                if (array_key_exists($product_id, $productQuantities)) {
+                    $productQuantities[$product_id]['totalQuantity'] += $childOrder->totalQuantity;
+                } else {
+                    $productQuantities[$product_id] = [
+                        'product' => $childOrder->product,
+                        'totalQuantity' => (int)$childOrder->totalQuantity,
+                    ];
+                }
+            }
+        }
+
+        $productQuantitiesCollection = collect($productQuantities);
+        $topProducts = $productQuantitiesCollection->sortDesc()->take(5);
 
         return response()->json([
             'statusCode' => 200,

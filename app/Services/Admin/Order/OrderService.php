@@ -11,6 +11,8 @@ use LaravelDaily\Invoices\Invoice;
 use LaravelDaily\Invoices\Classes\InvoiceItem;
 use LaravelDaily\Invoices\Classes\Party;
 use App\Mail\Invoice as MailInvoice;
+use App\Models\Coupon;
+use App\Models\Customer;
 use App\Models\CustomerCoupon;
 use App\Models\PropertyOption;
 use App\Models\Sku;
@@ -19,7 +21,10 @@ use App\Services\Admin\Customer\CustomerService as CustomerCustomerService;
 use App\Services\Admin\Product\ProductService;
 use App\Services\Admin\Property\PropertyService;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Constraint\Count;
 
 class OrderService
 {
@@ -98,9 +103,77 @@ class OrderService
         return $orders;
     }
 
+    public function indexRevenues($params)
+    {
+        $orders = $this->order
+            ->with('childrenOrders', 'customer')
+            ->whereNull('order_id')
+            ->whereIn('status', [3, 4])
+            ->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
+
+        if (isset($params['from'], $params['to'])) {
+            $from = Carbon::createFromFormat('D M d Y H:i:s e+', $params['from'])->startOfDay();
+            $to = Carbon::createFromFormat('D M d Y H:i:s e+', $params['to'])->startOfDay();
+            $orders = $orders->whereRaw("`created_at` BETWEEN '$from' AND '$to'");
+        }
+
+        if (isset($params['keywords'])) {
+            $orders = $orders->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
+                ->where('customers.phone', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('code', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('customers.name', 'LIKE', '%' . $params['keywords'] . '%')
+                ->select('orders.*');
+        }
+
+        if (isset($params['payment_type'])) {
+            $orders = $orders->where('payment_type', $params['payment_type']);
+        }
+
+        if (isset($params['per_page'])) {
+            $orders = $orders
+                ->paginate(
+                    $params['per_page'],
+                    ['*'],
+                    'page',
+                    $params['page'] ?? 1
+                );
+        } else {
+            $orders = $orders->get();
+        }
+
+
+        $orders->map(function ($order) {
+            $date                     = date('d-m-Y H:i:s', strtotime($order->created_at));
+            $order->createdAt         = $date;
+            $order->filename          = $order->code . '_' . Str::slug($order->customer->name) . '.pdf';
+            $order->class             = config("constant.className.$order->status");
+            $order->class_status      = config("constant.classNameStatusPayment.$order->status_payment");
+            $order->class_type        = config("constant.classNameTypePayment.$order->payment_type");
+            $order->status_code       = $order->status;
+            $order->status            = config("constant.status_order_common.$order->status");
+            $order->status_payment    = config("constant.status_payment_common.$order->status_payment");
+            $order->payment_type      = config("constant.payment_type_common.$order->payment_type");
+        });
+
+        return $orders;
+    }
+
     public function checkCoupon($customerId, $code)
     {
+        $customer = $this->customerService->getCustomerById($customerId);
+        $cus      = Customer::where('phone', $customer->phone)->withTrashed()->first();
+        $od       = Order::where('customer_id', $cus->id)->first();
         $coupon = $this->couponService->getCouponByCode($code);
+        $check = $this->customerCoupon->where('customer_id', $customerId)->where('coupon_id', $coupon->id)->first();
+        $check2 = $this->customerCoupon->where('customer_id', $cus->id)->where('coupon_id', $coupon->id)->first();
+
+        if ($od && $check2) {
+            return response()->json([
+                "message" => "Phát hiện hành vi gian lận, không thể áp dụng mã giảm giá.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
         if (!$coupon) {
             return response()->json([
                 "message" => "Mã khuyến mãi không tồn tại.",
@@ -108,7 +181,14 @@ class OrderService
             ], 400);
         }
 
-        $check = $this->customerCoupon->where('customer_id', $customerId)->where('coupon_id', $coupon->id)->first();
+        $od2      = Order::where('customer_id', $customerId)->first();
+        if ($od2 && ($coupon->new_customer === 1)) {
+            return response()->json([
+                "message" => "Mã giảm giá chỉ áp dụng cho thành viên mới, vui lòng thử lại sau.",
+                "statusCode" => 400,
+            ], 400);
+        }
+
         if ($check) {
             return response()->json([
                 "message" => "Mã khuyến mãi đã được bạn sử dụng.",
@@ -116,16 +196,18 @@ class OrderService
             ], 400);
         }
 
-        $specificDate = Carbon::parse($coupon->expired_at)->endOfDay();
-        $nowDate      = Carbon::now();
-        if (!$nowDate->lte($specificDate)) {
-            return response()->json([
-                "message" => "Mã khuyến mãi đã hết hạn sử dụng.",
-                "statusCode" => 400,
-            ], 400);
+        if ($coupon->has_expired == 1) {
+            $specificDate = Carbon::parse($coupon->expired_at);
+            $nowDate      = Carbon::now();
+            if (!$nowDate->lte($specificDate)) {
+                return response()->json([
+                    "message" => "Mã khuyến mãi đã hết hạn sử dụng.",
+                    "statusCode" => 400,
+                ], 400);
+            }
         }
 
-        if ($coupon->count == 0) {
+        if ($coupon->quantity - $coupon->quantity_used == 0) {
             return response()->json([
                 "message" => "Mã khuyến mãi đã hết lượt sử dụng.",
                 "statusCode" => 400,
@@ -195,7 +277,7 @@ class OrderService
         foreach ($order->childrenOrders as $child) {
             $total += $child->quantity * $child->price;
         }
-        $order->discount                = $coupon ? ($coupon->type == 0 ? ($total * $coupon->value) / 100 : $coupon->value) : 0;
+        $order->discount                = $coupon ? (($coupon->type == 0) ? ((($total * $coupon->value) / 100) > $coupon->value_max ? $coupon->value_max : ($total * $coupon->value) / 100) : $coupon->value) : 0;
         $order->total2                  = $total;
 
         return $order;
@@ -352,7 +434,7 @@ class OrderService
 
         $vnp_Url = $vnp_Url . "?" . $query;
         if (isset($vnp_HashSecret)) {
-            $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret); //  
+            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret); //  
             $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
         }
         $returnData = array(
@@ -370,6 +452,85 @@ class OrderService
         return response()->json([
             'statusCode'    => 200,
             'url'          => $data['data']
+        ], 200);
+    }
+
+    public function vnpayIpn($data)
+    {
+        $inputData      = [];
+        $vnp_HashSecret = "WJBSBDEBXMQXPSUQZWURUMLLALWCVDLI";
+
+        foreach ($data as $key => $value) {
+            if (substr($key, 0, 4) == "vnp_") {
+                $inputData[$key] = $value;
+            }
+        }
+
+        $vnp_SecureHash = $inputData['vnp_SecureHash'];
+        unset($inputData['vnp_SecureHash']);
+        ksort($inputData);
+        $i = 0;
+        $hashData = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+        }
+
+        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+        $vnp_Amount = $inputData['vnp_Amount'] / 100;
+
+        $status = 0;
+        $orderCode = $inputData['vnp_TxnRef'];
+
+        if ($secureHash != $vnp_SecureHash) {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => "Chữ ký không hợp lệ"
+            ], 400);
+        }
+
+        $order = $this->getOrderByCode($orderCode);
+        if (!$order) {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => "Không tìm thấy đơn hàng"
+            ], 400);
+        }
+
+        if ($order["total"] != $vnp_Amount) {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => "Số tiền không hợp lệ"
+            ], 400);
+        }
+
+        if ($order["status_payment"] == "Đã thanh toán") {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => "Đơn hàng đã được thanh toán."
+            ], 400);
+        }
+
+        if ($inputData['vnp_ResponseCode'] != '00' || $inputData['vnp_TransactionStatus'] != '00') {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => "Thanh toát thất bại."
+            ], 400);
+        }
+
+        $status = 1;
+        $data = [
+            'status_payment' => $status,
+            'payment_at'     => Carbon::now()
+        ];
+        $this->payment($order['code'], $data);
+        return response()->json([
+            'statusCode' => 200,
+            'message'    => "Thanh toán thành công."
         ], 200);
     }
 
@@ -392,6 +553,64 @@ class OrderService
         $coupon = null;
         if (isset($data['couponCode'])) {
             $coupon = $this->couponService->getCouponByCode($data['couponCode']);
+            $customer = $this->customerService->getCustomerById($data['customerId']);
+            $cus      = Customer::where('phone', $customer->phone)->withTrashed()->first();
+            $od       = Order::where('customer_id', $cus->id)->first();
+            $check = $this->customerCoupon->where('customer_id', $data['customerId'])->where('coupon_id', $coupon->id)->first();
+            $check2 = $this->customerCoupon->where('customer_id', $cus->id)->where('coupon_id', $coupon->id)->first();
+
+            if ($od && $check2) {
+                return response()->json([
+                    "message" => "Phát hiện hành vi gian lận, không thể áp dụng mã giảm giá.",
+                    "statusCode" => 400,
+                ], 400);
+            }
+
+            if (!$coupon) {
+                return response()->json([
+                    "message" => "Mã khuyến mãi không tồn tại.",
+                    "statusCode" => 400,
+                ], 400);
+            }
+
+            $od2      = Order::where('customer_id', $data['customerId'])->first();
+            if ($od2 && ($coupon->new_customer === 1)) {
+                return response()->json([
+                    "message" => "Mã giảm giá chỉ áp dụng cho thành viên mới, vui lòng thử lại sau.",
+                    "statusCode" => 400,
+                ], 400);
+            }
+
+            if ($check) {
+                return response()->json([
+                    "message" => "Mã khuyến mãi đã được bạn sử dụng.",
+                    "statusCode" => 400,
+                ], 400);
+            }
+
+            if ($coupon->has_expired == 1) {
+                $specificDate = Carbon::parse($coupon->expired_at);
+                $nowDate      = Carbon::now();
+                if (!$nowDate->lte($specificDate)) {
+                    return response()->json([
+                        "message" => "Mã khuyến mãi đã hết hạn sử dụng.",
+                        "statusCode" => 400,
+                    ], 400);
+                }
+            }
+
+            if ($coupon->quantity - $coupon->quantity_used <= 0) {
+                return response()->json([
+                    "message" => "Mã khuyến mãi đã hết lượt sử dụng.",
+                    "statusCode" => 400,
+                ], 400);
+            }
+
+            return response()->json([
+                "message"    => "Áp dụng mã khuyến mãi $coupon->code thành công.",
+                "data"       => $coupon,
+                "statusCode" => 200
+            ], 200);
         }
         $parentOrder = [
             'customer_id'   => $data['customerId'],
@@ -421,8 +640,8 @@ class OrderService
         }
         $order->childrenOrders()->createMany($childOrder);
         if ($coupon) {
-            $total -= ($coupon->type == 0) ? ($total * $coupon->value) / 100 : $coupon->value;
-            $coupon->update(['count' => $coupon->count - 1]);
+            $total -= ($coupon->type == 0) ? ((($total * $coupon->value) / 100) > $coupon->value_max ? $coupon->value_max : ($total * $coupon->value) / 100) : $coupon->value;
+            $coupon->update(['quantity_used' => $coupon->quantity_used + 1]);
             $this->customerCoupon->create(['coupon_id' => $coupon->id, 'customer_id' => $data['customerId']]);
         }
 

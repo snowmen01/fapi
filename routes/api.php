@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\Client\AuthController as ClientAuthController;
@@ -50,4 +51,14 @@ Route::controller(BannerController::class)
     ->name('banners.')
     ->group(function () {
         Route::get('/get-all/store', 'getAllFront')->name('getAllFront');
+    });
+
+Route::controller(HomeController::class)
+    ->prefix('/homes')
+    ->name('homes.')
+    ->group(function () {
+        Route::get('/get-provinces', 'getProvinces')->name('getProvinces');
+        Route::get('/get-districts/{provinceId}', 'getDistricts')->name('getDistricts');
+        Route::get('/get-wards/{districtId}', 'getWards')->name('getWards');
+        Route::get('/get-roles', 'getRoles')->name('getRoles');
     });

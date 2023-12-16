@@ -4,19 +4,24 @@ namespace App\Services\Admin\Product;
 
 use App\Models\Product;
 use App\Models\PropertyOptionSku;
+use App\Models\Sku;
 use App\Services\Admin\Category\CategoryService;
+use Illuminate\Support\Facades\Log;
 
 class ProductService
 {
     protected $product;
     protected $categoryService;
+    protected $sku;
 
     public function __construct(
         Product $product,
-        CategoryService $categoryService
+        CategoryService $categoryService,
+        Sku $sku
     ) {
         $this->product         = $product;
         $this->categoryService = $categoryService;
+        $this->sku             = $sku;
     }
 
     public function index($params)
@@ -66,7 +71,7 @@ class ProductService
         return $products;
     }
 
-    public function search($slug, $params)
+    public function search($slug, $params, $filteredData)
     {
         $category = $this->categoryService->getCategoryBySlug2($slug);
         $products = $this->product
@@ -83,8 +88,68 @@ class ProductService
             $products = $products->where('brand_id', $params['brand_id']);
         }
 
+        if (count($filteredData) > 0) {
+            $skuIds = PropertyOptionSku::whereIn('property_option_id', array_values($filteredData))
+                ->groupBy('sku_id')
+                ->havingRaw('COUNT(DISTINCT property_option_id) = ?', [count(array_values($filteredData))])
+                ->pluck('sku_id');
+            $productIds = $this->sku
+                ->whereIn('id', $skuIds)
+                ->distinct('product_id')
+                ->pluck('product_id')
+                ->toArray();
+            $products = $products->whereIn('id', $productIds);
+        }
+
+        if (isset($params['per_page'])) {
+            $products = $products
+                ->paginate(
+                    $params['per_page'],
+                    ['*'],
+                    'page',
+                    $params['page'] ?? 1
+                );
+        } else {
+            $products = $products->get();
+        }
+
+        $products->map(function ($product) {
+            $product->name = limitTo($product->name, 10);
+        });
+
+        return $products;
+    }
+
+    public function search2($params, $filteredData)
+    {
+        $products = $this->product
+            ->where('active', config('constant.active'))
+            ->with('skus', 'image')
+            ->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
+
+        if (isset($params['keywords'])) {
+            $products = $products->where('name', 'LIKE', '%' . $params['keywords'] . '%');
+        }
+
+        if (isset($params['brand_id'])) {
+            $products = $products->where('brand_id', $params['brand_id']);
+        }
+
         if (isset($params['category_id'])) {
             $products = $products->where('category_id', $params['category_id']);
+        }
+
+        if (count($filteredData) > 0) {
+            $skuIds = PropertyOptionSku::whereIn('property_option_id', array_values($filteredData))
+                ->groupBy('sku_id')
+                ->havingRaw('COUNT(DISTINCT property_option_id) = ?', [count(array_values($filteredData))])
+                ->pluck('sku_id');
+            $productIds = $this->sku
+                ->whereIn('id', $skuIds)
+                ->distinct('product_id')
+                ->pluck('product_id')
+                ->toArray();
+            $products = $products->whereIn('id', $productIds);
         }
 
         if (isset($params['per_page'])) {

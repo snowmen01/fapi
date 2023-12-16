@@ -41,6 +41,11 @@ class User extends Authenticatable implements JWTSubject
         'remember_token',
     ];
 
+    public function image()
+    {
+        return $this->morphOne(Image::class, 'imageable');
+    }
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
@@ -49,6 +54,12 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
+    }
+
+    public function role()
+    {
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
+            ->where('model_type', 'App\Models\User');
     }
 
     public function getJWTCustomClaims()

@@ -67,6 +67,8 @@ class CouponController extends Controller
         try {
             $data = $request->all();
             $data['active']         = $data['active'] == true ? 1 : 0;
+            $data['new_customer']   = $data['new_customer'] == true ? 1 : 0;
+            $data['has_expired']    = $data['has_expired'] == true ? 1 : 0;
             $data['code']           = strtoupper($data['code']);
             $data['expired_at']     = Carbon::parse($data['expiredDate'])->format('Y-m-d H:i:s');
             $this->couponService->store($data);
@@ -82,9 +84,11 @@ class CouponController extends Controller
 
     public function show($id)
     {
-        $coupon                = $this->couponService->getCouponById($id);
-        $coupon['active']      = $coupon['active'] === 1 ? true : false;
-        $coupon['expiredDate'] = $coupon['expired_at'];
+        $coupon                 = $this->couponService->getCouponById($id);
+        $coupon['active']       = $coupon['active'] === 1 ? true : false;
+        $coupon['has_expired']  = $coupon['has_expired'] === 1 ? true : false;
+        $coupon['new_customer'] = $coupon['new_customer'] === 1 ? true : false;
+        $coupon['expiredDate']  = $coupon['expired_at'];
 
         return response()->json([
             'data'        => $coupon,
@@ -96,6 +100,8 @@ class CouponController extends Controller
         try {
             $data                   = $request->all();
             $data['active']         = $data['active'] == true ? 1 : 0;
+            $data['new_customer']   = $data['new_customer'] == true ? 1 : 0;
+            $data['has_expired']    = $data['has_expired'] == true ? 1 : 0;
             $data['code']           = strtoupper($data['code']);
             $data['expired_at']     = Carbon::parse($data['expiredDate'])->format('Y-m-d H:i:s');
             $this->couponService->update($id, $data);

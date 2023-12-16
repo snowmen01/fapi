@@ -27,6 +27,16 @@ class UpdateRequest extends FormRequest
             ]
         ];
 
+        if($this->type==0){
+            $rules[] = [
+                'value'  => 'required|numeric|max:100|min:1',
+            ];
+        }else{
+            $rules[] = [
+                'value'  => 'required|numeric|max:100000000|min:1',
+            ];
+        }
+
         return $rules;
     }
 

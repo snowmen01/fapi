@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Coupon;
+namespace App\Http\Requests\Admin\Brand;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;

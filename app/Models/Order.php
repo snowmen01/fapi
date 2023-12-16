@@ -36,12 +36,7 @@ class Order extends Model
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
-    }
-
-    public function modelFilter(): ?string
-    {
-        return $this->provideFilter(OrderFilter::class);
+        return $this->belongsTo(Customer::class)->withTrashed();
     }
 
     public function childrenOrders()

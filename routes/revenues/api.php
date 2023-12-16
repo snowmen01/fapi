@@ -13,5 +13,6 @@ Route::middleware(['api'])->group(function () {
     Route::get('/revenues/select-order-by-status', [RevenueController::class, 'selectOrderByStatus'])->name('revenues.selectOrderByStatus');
     Route::get('/revenues/select-revenue-by-payment-type', [RevenueController::class, 'selectRevenuesByPaymentType'])->name('revenues.selectRevenuesByPaymentType');
     Route::get('/revenues/select-order-recent', [RevenueController::class, 'selectOrderRecent'])->name('revenues.selectOrderRecent');
-    // Route::get('/revenues/total-revenue-follow-month', [RevenueController::class, 'totalRevenueMonth'])->name('revenues.totalRevenueMonth');
+    Route::get('/revenues/index', [RevenueController::class, 'index'])->name('revenues.index');
+    Route::get('/revenues/export', [RevenueController::class, 'export'])->name('revenues.export');
 });

@@ -129,11 +129,46 @@ class ProductController extends Controller
                 'brand_id'       => $request->brand_id,
                 'page'           => $request->page,
                 'per_page'       => 12,
-                'order_by'       => $request->order_by,
-                'sort_key'       => $request->sort_key,
+                'order_by'       => $request->sort ? explode('.', $request->sort)[1] : null,
+                'sort_key'       => $request->sort ? explode('.', $request->sort)[0] : null,
             ];
-            
-            $resultCollection = $this->productService->search($slug, $params);
+            $filteredData = [];
+            foreach ($request->all() as $key => $value) {
+                if ($key !== 'brand_id' && $key !== 'sort') {
+                    $filteredData[$key] = $value;
+                }
+            }
+
+            $resultCollection = $this->productService->search($slug, $params, $filteredData);
+
+            $result = ProductCollection::collection($resultCollection);
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
+    public function getAllProducts(Request $request)
+    {
+        try {
+            $params = [
+                'keywords'       => $request->keywords,
+                'brand_id'       => $request->brand_id,
+                'category_id'    => $request->category_id,
+                'page'           => (int)$request->page,
+                'per_page'       => 100,
+                'order_by'       => $request->sort ? explode('.', $request->sort)[1] : null,
+                'sort_key'       => $request->sort ? explode('.', $request->sort)[0] : null,
+            ];
+            $filteredData = [];
+            foreach ($request->all() as $key => $value) {
+                if ($key !== 'brand_id' && $key !== 'sort' && $key !== 'category_id' && $key !== 'page') {
+                    $filteredData[$key] = $value;
+                }
+            }
+
+            $resultCollection = $this->productService->search2($params, $filteredData);
 
             $result = ProductCollection::collection($resultCollection);
 

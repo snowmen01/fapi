@@ -52,6 +52,13 @@ class RoleService
         return $roles;
     }
 
+    public function getRoles()
+    {
+        $roles = $this->role->whereNotIn('id', [1, 2])->get();
+
+        return $roles;
+    }
+
     public function show($id)
     {
         $role = $this->role->find($id);

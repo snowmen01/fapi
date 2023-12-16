@@ -4,6 +4,7 @@ namespace App\Services\Admin\Coupon;
 
 use App\Models\Coupon;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class CouponService
 {
@@ -37,10 +38,12 @@ class CouponService
         }
 
         $coupons->map(function ($coupon) {
-            $coupon->name        = limitTo($coupon->name, 10);
-            $coupon->expired_at  = Carbon::parse($coupon->expired_at)->format("m-d-Y");
-            $coupon->type        = config("constant.type_coupon_common.$coupon->type");
-            $coupon->description = limitTo($coupon->description, 10);
+            $coupon->name           = limitTo($coupon->name, 10);
+            $coupon->expired_at     = Carbon::parse($coupon->expired_at)->format("m-d-Y");
+            $coupon->type           = config("constant.type_coupon_common.$coupon->type");
+            $coupon->quantity       = $coupon->quantity - $coupon->quantity_used;
+            $coupon->has_expired    = $coupon->has_expired === 1 ? true : false;
+            $coupon->description    = limitTo($coupon->description, 10);
         });
 
         return $coupons;
@@ -78,8 +81,9 @@ class CouponService
     public function getCoupons()
     {
         $coupons = $this->coupon->orderBy('id', 'desc')->where('active', config('constant.active'))->get();
-        $coupons->map(function ($coupon){
-            $coupon->expiredDate = Carbon::parse($coupon->expired_at)->format("m-d-Y");
+        $coupons->map(function ($coupon) {
+            $coupon->expiredDate = Carbon::parse($coupon->expired_at)->format("m-d-Y H:i:s");
+            $coupon->has_expired = $coupon->has_expired === 1 ? true : false;
         });
 
         return $coupons;

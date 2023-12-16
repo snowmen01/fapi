@@ -94,14 +94,14 @@ class AuthController extends Controller
         $data = $request->all();
 
         $passwordReset = PasswordReset::where('token', $data['otp'])->first();
-        if($passwordReset){
-            if (Carbon::parse($passwordReset->created_at)->addMinutes(1)->isPast()) {
+        if ($passwordReset) {
+            if (Carbon::parse($passwordReset->created_at)->addMinutes(5)->isPast()) {
                 return response()->json([
                     'statusCode' => 400,
                     'message' => "OTP Đã hết hạn, vui lòng thử lại."
                 ], 400);
             }
-    
+
             $user = User::where('email', $passwordReset->email)->first();
             $user->update([
                 'password' => $data['password'],
@@ -113,7 +113,7 @@ class AuthController extends Controller
                     'message' => "Cập nhật mật khẩu thành công."
                 ], 200);
             }
-        }else{
+        } else {
             return response()->json([
                 'statusCode' => 400,
                 'message' => "OTP không chính xác."
@@ -177,16 +177,13 @@ class AuthController extends Controller
         JWTAuth::setToken($user->access_token)->invalidate();
         $token = JWTAuth::fromUser($user);
         $responseData = $this->userRepository->updateRefreshToken($user->id, $token);
+
         return response()->json([
             'message' =>  'Đăng nhập thành công',
             'access_token' => $token,
             'user' => $user,
             'refresh_token' => $responseData->refresh_token,
         ], 200);
-        return response()->json([
-            'status' => 1,
-            'message' =>  __('api.refresh_token.not_found'),
-        ], 401);
     }
 
     public function logout()

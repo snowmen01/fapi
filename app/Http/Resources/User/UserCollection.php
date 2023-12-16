@@ -2,12 +2,11 @@
 
 namespace App\Http\Resources\User;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserCollection extends ResourceCollection
+class UserCollection extends JsonResource
 {
-    public function toArray(Request $request)
+    public function toArray($request)
     {
         if (!empty($this->items)) {
             return [];
@@ -17,7 +16,11 @@ class UserCollection extends ResourceCollection
             'id'          => $this->id,
             'name'        => $this->name,
             'phone'       => $this->phone,
+            'image'            => $this->whenLoaded('image', function () {
+                return $this->image;
+            }),
             'dob'         => $this->dob,
+            'roleId'      => $this->roleId,
             'gender'      => $this->gender,
             'province_id' => $this->province_id,
             'district_id' => $this->district_id,
@@ -26,8 +29,8 @@ class UserCollection extends ResourceCollection
             'email'       => $this->email,
             'password'    => $this->password,
             'active'      => $this->active,
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
+            'createdAt'   => $this->created_at,
+            'updatedAt'   => $this->updated_at,
         ];
 
         return $array;

@@ -96,6 +96,18 @@ class OrderController extends Controller
         }
     }
 
+    public function vnpayIpn(Request $request)
+    {
+        try {
+            $data = $request->all();
+            $data = $this->orderService->vnpayIpn($request->all());
+
+            return $data;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
     public function cancelled(Request $request, $code)
     {
         try {
