@@ -98,12 +98,22 @@ class UserService
     public function update($id, $data)
     {
         $user = $this->getUserById($id);
+        if(isset($data['password'])){
+            $data['password']       = Hash::make($data['password']);
+        }
+        $data['dob']                = Carbon::parse($data['dob'])->addDays(1)->format('Y-m-d');
+        $data['province_id']        = $data['provinceId'];
+        $data['district_id']        = $data['districtId'];
+        $data['ward_id']            = $data['wardId'];
+        $data['role_id']            = isset($data['roleId']) ? $data['roleId'] : '';
+
         if (isset($data['images'][0]['url'])) {
             $user->image()->delete();
             $dataImage = ['path' => $data['images'][0]['url']];
             $user->image()->create($dataImage);
         }
         $user->update($data);
+        $user->syncRoles($data['role_id']);
 
         return $user;
     }

@@ -3,6 +3,7 @@
 namespace App\Services\Admin\Customer;
 
 use App\Models\Customer;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Kjmtrue\VietnamZone\Models\District;
 use Kjmtrue\VietnamZone\Models\Province;
@@ -93,10 +94,6 @@ class CustomerService
     public function store($data)
     {
         $customer = $this->customer->create($data);
-        if (isset($data['images'])) {
-            $dataImage = ['path' => $data['images'][0]['url']];
-            $customer->image()->create($dataImage);
-        }
 
         return $customer;
     }
@@ -104,10 +101,8 @@ class CustomerService
     public function update($id, $data)
     {
         $customer = $this->getCustomerById($id);
-        if (isset($data['images'][0]['url'])) {
-            $customer->image()->delete();
-            $dataImage = ['path' => $data['images'][0]['url']];
-            $customer->image()->create($dataImage);
+        if(isset($data['password'])){
+            $data['password']  = Hash::make($data['password']);
         }
         $customer->update($data);
 
@@ -125,7 +120,6 @@ class CustomerService
     public function delete($id)
     {
         $customer = $this->getCustomerById($id);
-        $customer->image()->delete();
         $customer->delete();
 
         return $customer;

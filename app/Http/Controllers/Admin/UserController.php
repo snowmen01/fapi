@@ -63,16 +63,35 @@ class UserController extends Controller
         }
     }
 
-    public function update()
+    public function update(Request $request, $id)
     {
+        try {
+            $data = $request->all();
+            $this->userService->update($id, $data);
+
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
     }
+
+    public function show($id)
+    {
+        $user           = $this->userService->getUserById($id);
+        $user['active'] = $user['active'] === 1 ? true : false;
+
+        return response()->json([
+            'data'        => $user,
+        ]);
+    }
+
     public function active()
     {
     }
     public function destroy()
-    {
-    }
-    public function show(Request $request)
     {
     }
 }

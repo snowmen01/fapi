@@ -103,6 +103,59 @@ class OrderService
         return $orders;
     }
 
+    public function index2($params,$customerId)
+    {
+        $orders = $this->order
+        ->with('childrenOrders', 'customer')
+        ->whereNull('order_id')
+        ->where('customer_id', $customerId)
+        ->orderBy($params['sort_key'] ?? 'id', $params['order_by'] ?? 'DESC');
+
+        if (isset($params['keywords'])) {
+            $orders = $orders->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
+                ->where('customers.phone', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('code', 'LIKE', '%' . $params['keywords'] . '%')
+                ->orWhere('customers.name', 'LIKE', '%' . $params['keywords'] . '%')
+                ->select('orders.*');
+        }
+
+        if (isset($params['status'])) {
+            $orders = $orders->where('status', $params['status']);
+        }
+
+        if (isset($params['payment_type'])) {
+            $orders = $orders->where('payment_type', $params['payment_type']);
+        }
+
+        if (isset($params['per_page'])) {
+            $orders = $orders
+                ->paginate(
+                    $params['per_page'],
+                    ['*'],
+                    'page',
+                    $params['page'] ?? 1
+                );
+        } else {
+            $orders = $orders->get();
+        }
+
+
+        $orders->map(function ($order) {
+            $date                     = date('d-m-Y H:i:s', strtotime($order->created_at));
+            $order->createdAt         = $date;
+            $order->filename          = $order->code . '_' . Str::slug($order->customer->name) . '.pdf';
+            $order->class             = config("constant.className.$order->status");
+            $order->class_status      = config("constant.classNameStatusPayment.$order->status_payment");
+            $order->class_type        = config("constant.classNameTypePayment.$order->payment_type");
+            $order->status_code       = $order->status;
+            $order->status            = config("constant.status_order_common.$order->status");
+            $order->status_payment    = config("constant.status_payment_common.$order->status_payment");
+            $order->payment_type      = config("constant.payment_type_common.$order->payment_type");
+        });
+
+        return $orders;
+    }
+
     public function indexRevenues($params)
     {
         $orders = $this->order

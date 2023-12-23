@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Customer\UpdateRequest;
+use App\Http\Requests\Admin\Customer\UpdateRequestPassword;
 use App\Http\Resources\Customer\CustomerCollection;
 use App\Services\Admin\Customer\CustomerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CustomerController extends Controller
@@ -68,7 +71,7 @@ class CustomerController extends Controller
     //         $data = $request->all();
     //         $data['slug']   = Str::slug($data['name'], '-');
     //         $this->brandService->store($data);
-            
+
     //         return response()->json([
     //             'result'        => 0,
     //             'message'       => "Tạo mới thành công!",
@@ -87,36 +90,65 @@ class CustomerController extends Controller
     //     ]);
     // }
 
-    // public function update(UpdateRequest $request, $id)
-    // {
-    //     try {
-    //         $data = $request->all();
-    //         $data['slug']   = Str::slug($data['name'], '-');
-    //         $this->brandService->update($id, $data);
-            
-    //         return response()->json([
-    //             'result'        => 0,
-    //             'message'       => "Cập nhật thành công!",
-    //         ], 200);
-    //     } catch (\Throwable $th) {
-    //         Log::info($th->getMessage());
-    //     }
-    // }
+    public function update(UpdateRequest $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $this->customerService->update($id, $data);
 
-    // public function destroy($id)
-    // {
-    //     try {
-    //         DB::transaction(function () use ($id) {
-    //             $this->brandService->delete($id);
-    //         });
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
 
-    //         return response()->json([
-    //             'result'  => 0,
-    //             'message' => "Xoá thành công!",
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::info($e->getMessage());
-    //         return $this->errorBack('Đã xảy ra lỗi');
-    //     }
-    // }
+    public function updateFE(UpdateRequest $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $this->customerService->update($id, $data);
+
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
+    public function updatePassword(UpdateRequestPassword $request, $id)
+    {
+        try {
+            $data = $request->all();
+            $this->customerService->update($id, $data);
+
+            return response()->json([
+                'result'        => 0,
+                'message'       => "Cập nhật thành công!",
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+    }
+
+    public function deleteFE($id)
+    {
+        try {
+            DB::transaction(function () use ($id) {
+                $this->customerService->delete($id);
+            });
+
+            return response()->json([
+                'result'  => 0,
+                'message' => "Xoá thành công!",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+            return $this->errorBack('Đã xảy ra lỗi');
+        }
+    }
 }

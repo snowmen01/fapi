@@ -8,6 +8,7 @@ Route::middleware(['api'])->group(function () {
 
     Route::post('/orders/status-order/{code}', [OrderController::class, 'status'])->name('orders.status');
     Route::get('/orders/search-order/{code}', [OrderController::class, 'searchOrder'])->name('orders.searchOrder');
+    Route::get('/orders/index/{customer}', [OrderController::class, 'index2'])->name('orders.index2');
     Route::get('/orders/vnpay/{code}', [OrderController::class, 'vnpay2'])->name('orders.vnpay2');
     Route::get('/orders/vnpay/v2/vnpay-ipn', [OrderController::class, 'vnpayIpn'])->name('orders.vnpayIpn');
     Route::get('/orders/status-order/cancelled/{code}', [OrderController::class, 'cancelled'])->name('orders.cancelled');

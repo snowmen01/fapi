@@ -72,6 +72,30 @@ class OrderController extends Controller
         }
     }
 
+    public function index2(Request $request, $customerId)
+    {
+        try {
+            $params = [
+                'keywords'         => $request->keywords,
+                'page'             => $request->page,
+                'per_page'         => $request->per_page,
+                'order_by'         => $request->order_by,
+                'sort_key'         => $request->sort_key,
+                'status'           => $request->status,
+                'payment_type'     => $request->payment_type,
+                'status_payment'   => $request->status_payment,
+            ];
+
+            $resultCollection = $this->orderService->index2($params, $customerId);
+
+            $result = OrderCollection::collection($resultCollection);
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::info($e->getMessage());
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -132,7 +156,7 @@ class OrderController extends Controller
     public function searchOrder($code)
     {
         $order           = $this->orderService->getOrderByCode($code);
-        if(!$order){
+        if (!$order) {
             return response()->json([
                 'statusCode'     => 400,
                 'message'        => "Không tìm thấy đơn đặt hàng này.",
